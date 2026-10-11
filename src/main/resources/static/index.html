@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodShareConnect</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f8f4;
+            background-image: linear-gradient(rgba(244,248,244,.82), rgba(244,248,244,.82)),
+            url("https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1920&q=80");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            color: #333;
+        }
+
+        header {
+            background: #176b45;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+
+        nav {
+            background: #104d32;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px;
+        }
+
+        nav button {
+            background: transparent;
+            color: white;
+            border: 1px solid transparent;
+            padding: 10px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        nav button:hover,
+        nav button.active {
+            background: #f4b942;
+            color: #222;
+        }
+
+        .page {
+            display: none;
+            padding: 35px 20px;
+            min-height: 65vh;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* HOME PAGE BACKGROUND */
+        #home {
+            background-image:
+            linear-gradient(rgba(244,248,244,.30), rgba(244,248,244,.30)),
+            url("https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1920&q=80");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 14px;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 45px 20px;
+            background: rgba(255,255,255,.88);
+            backdrop-filter: blur(2px);
+            border-radius: 15px;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .hero h2 {
+            font-size: 34px;
+            color: #176b45;
+            margin-bottom: 15px;
+        }
+
+        .hero p {
+            font-size: 17px;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        /* ABOUT PAGE BACKGROUND */
+        #about {
+            background-image:
+            linear-gradient(rgba(244,248,244,.28), rgba(244,248,244,.28)),
+            url("https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1920&q=80");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 14px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: auto;
+            background: white;
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,.08);
+        }
+
+        #about .container {
+            background: rgba(255,255,255,.91);
+        }
+
+        h2.section-title {
+            color: #176b45;
+            text-align: center;
+            margin-bottom: 22px;
+        }
+
+        p {
+            line-height: 1.7;
+        }
+
+        .btn {
+            background: #198754;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 15px;
+        }
+
+        .btn:hover {
+            background: #12683e;
+        }
+
+        .btn.secondary {
+            background: #e7a928;
+            color: #222;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            margin: 9px 0 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        /* GOVERNMENT SCHEME CARDS */
+        .scheme-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .scheme-card {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            border-top: 5px solid #198754;
+            box-shadow: 0 4px 14px rgba(0,0,0,.10);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        .scheme-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,.14);
+        }
+
+        .scheme-icon {
+            font-size: 32px;
+        }
+
+        .scheme-card h3 {
+            color: #176b45;
+            font-size: 19px;
+        }
+
+        .scheme-card p {
+            flex-grow: 1;
+            font-size: 14px;
+        }
+
+        .scheme-link {
+            display: inline-block;
+            text-decoration: none;
+            color: white;
+            background: #198754;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .scheme-link:hover {
+            background: #12683e;
+        }
+
+        /* CHAT SYSTEM */
+        .chat-container {
+            max-width: 750px;
+            margin: auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,.1);
+        }
+
+        .chat-header {
+            background: #176b45;
+            color: white;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .chat-header h3 {
+            margin-bottom: 5px;
+        }
+
+        .chat-info {
+            background: #e9f7ee;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            padding: 18px;
+            background: #f7faf7;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            padding: 10px 14px;
+            border-radius: 12px;
+            max-width: 80%;
+            overflow-wrap: anywhere;
+        }
+
+        .message.received {
+            background: #e3e8e4;
+            align-self: flex-start;
+        }
+
+        .message.sent {
+            background: #c9f2d5;
+            align-self: flex-end;
+        }
+
+        .message small {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #176b45;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            padding: 12px;
+            border-top: 1px solid #ddd;
+            align-items: center;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            margin: 0;
+            min-width: 0;
+        }
+
+        .chat-input-area button {
+            margin: 0;
+        }
+
+        .chat-note {
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        footer {
+            background: #104d32;
+            color: white;
+            text-align: center;
+            padding: 18px;
+            margin-top: 25px;
+        }
+
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 24px;
+            }
+
+            .hero h2 {
+                font-size: 26px;
+            }
+
+            .container {
+                padding: 18px;
+            }
+
+            nav button {
+                padding: 9px 10px;
+            }
+
+            .chat-input-area {
+                flex-wrap: wrap;
+            }
+
+            .chat-input-area input {
+                width: 100%;
+                flex-basis: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>🌱 FoodShareConnect</h1>
+    <p>Share Food, Spread Happiness, Reduce Waste</p>
+</header>
+
+<nav>
+    <button class="active" onclick="showPage('home',this)">Home</button>
+    <button onclick="showPage('about',this)">About Us</button>
+    <button onclick="showPage('donate',this)">Donate Food</button>
+    <button onclick="showPage('find',this)">Find Food</button>
+    <button onclick="showPage('chat',this)">💬 Chat</button>
+    <button onclick="showPage('schemes',this)">Government Schemes</button>
+    <button onclick="showPage('contact',this)">Contact Us</button>
+    <button class="btn" onclick="showPage('login')">Login</button>
+    <button class="btn secondary" onclick="showPage('register')">Registration</button>
+</nav>
+
+<!-- HOME PAGE -->
+<section id="home" class="page active">
+    <div class="hero">
+        <h2>Welcome to FoodShareConnect</h2>
+        <p>
+            Connect food donors with people in need.
+            Help reduce food waste and make a difference
+            in your community.
+        </p>
+        <button class="btn" onclick="showPage('donate')">Donate Food Now</button>
+        <button class="btn secondary" onclick="showPage('find')">Find Food</button>
+    </div>
+</section>
+
+<!-- ABOUT PAGE -->
+<section id="about" class="page">
+    <div class="container">
+        <h2 class="section-title">About FoodShareConnect</h2>
+        <p>
+            FoodShareConnect is a food waste management and donation
+            network that connects people who have surplus food with
+            people who need it.
+        </p>
+        <br>
+        <p>
+            Our mission is to reduce food wastage, support communities,
+            and encourage responsible food donation.
+        </p>
+        <br>
+        <p>
+            Through our Donate Food, Find Food and Chat features,
+            donors and receivers can coordinate food donations.
+        </p>
+    </div>
+</section>
+
+<!-- DONATE FOOD PAGE -->
+<section id="donate" class="page">
+    <div class="container">
+        <h2 class="section-title">Donate Food</h2>
+        <form onsubmit="donateFood(event)">
+            <label>Donor Name</label>
+            <input type="text" id="donorName" required placeholder="Enter your name">
+
+            <label>Food Name</label>
+            <input type="text" id="foodName" required placeholder="Enter food items">
+
+            <label>Food Quantity</label>
+            <input type="text" id="foodQuantity" required placeholder="Example: 20 packets">
+
+            <label>Pickup Location</label>
+            <input type="text" id="donorLocation" required placeholder="Enter pickup location">
+
+            <label>Contact Number</label>
+            <input type="tel" id="donorPhone" required placeholder="Enter contact number">
+
+            <button class="btn" type="submit">Submit Donation</button>
+        </form>
+    </div>
+</section>
+
+<!-- FIND FOOD PAGE -->
+<section id="find" class="page">
+    <div class="container">
+        <h2 class="section-title">Find Available Food</h2>
+        <form onsubmit="findFood(event)">
+            <label>Your Name</label>
+            <input type="text" id="receiverName" required placeholder="Enter your name">
+
+            <label>Your Location</label>
+            <input type="text" id="receiverLocation" required placeholder="Enter your location">
+
+            <label>Food Required</label>
+            <input type="text" id="foodRequired" placeholder="What food do you need?">
+
+            <button class="btn" type="submit">Search Food</button>
+        </form>
+        <p id="findResult"></p>
+        <button class="btn secondary" onclick="showPage('chat')">Contact Through Chat</button>
+    </div>
+</section>
+
+<!-- CHAT PAGE -->
+<section id="chat" class="page">
+    <h2 class="section-title">💬 FoodShareConnect Chat</h2>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h3>Donor & Receiver Chat</h3>
+            <p>Communicate about food donations</p>
+        </div>
+        <div class="chat-info">
+            Discuss food availability, quantity, pickup time and location.
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message received">
+                <small>FoodShareConnect</small>
+                Welcome! You can type a message below to try the chat demo.
+            </div>
+        </div>
+        <form class="chat-input-area" onsubmit="sendMessage(event)">
+            <input type="text" id="chatInput" placeholder="Type your message..." autocomplete="off" required>
+            <button type="submit" class="btn">Send</button>
+        </form>
+        <div class="chat-note">
+            Demo chat: messages appear in this browser only.
+            This is not connected to another user.
+        </div>
+    </div>
+</section>
+
+<!-- GOVERNMENT SCHEMES PAGE -->
+<section id="schemes" class="page">
+    <div class="container">
+        <h2 class="section-title">Government Schemes & Resources</h2>
+        <p>Explore these official websites for food security and nutrition information:</p>
+
+        <div class="scheme-cards">
+            <article class="scheme-card">
+                <div class="scheme-icon">🍚</div>
+                <h3>National Food Security Portal</h3>
+                <p>Official portal with information about food security and the National Food Security Act.</p>
+                <a class="scheme-link" href="https://nfsa.gov.in/" target="_blank" rel="noopener noreferrer">Visit Official Website ↗</a>
+            </article>
+
+            <article class="scheme-card">
+                <div class="scheme-icon">🏛️</div>
+                <h3>Department of Food and Public Distribution</h3>
+                <p>Government information and resources related to food distribution and public food policy.</p>
+                <a class="scheme-link" href="https://dfpd.gov.in/" target="_blank" rel="noopener noreferrer">Visit Official Website ↗</a>
+            </article>
+
+            <article class="scheme-card">
+                <div class="scheme-icon">🥗</div>
+                <h3>POSHAN Abhiyaan</h3>
+                <p>Explore information about nutrition awareness and initiatives supporting better nutrition.</p>
+                <a class="scheme-link" href="https://www.poshanabhiyaan.gov.in/" target="_blank" rel="noopener noreferrer">Visit Official Website ↗</a>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- CONTACT PAGE -->
+<section id="contact" class="page">
+    <div class="container">
+        <h2 class="section-title">Contact Us</h2>
+        <form onsubmit="contactUs(event)">
+            <label>Your Name</label>
+            <input type="text" id="contactName" required placeholder="Enter your name">
+
+            <label>Email Address</label>
+            <input type="email" id="contactEmail" required placeholder="Enter your email">
+
+            <label>Message</label>
+            <textarea id="contactMessage" rows="4" required placeholder="Write your message"></textarea>
+
+            <button type="submit" class="btn">Send Message</button>
+        </form>
+    </div>
+</section>
+
+<!-- LOGIN PAGE -->
+<section id="login" class="page">
+    <div class="container">
+        <h2 class="section-title">Login</h2>
+        <form onsubmit="loginUser(event)">
+            <label>Email Address</label>
+            <input type="email" id="loginEmail" required placeholder="Enter your email">
+
+            <label>Password</label>
+            <input type="password" id="loginPassword" required placeholder="Enter your password">
+
+            <button type="submit" class="btn">Login</button>
+        </form>
+        <p>Don't have an account?</p>
+        <button class="btn secondary" onclick="showPage('register')">Create Account</button>
+    </div>
+</section>
+
+<!-- REGISTRATION PAGE -->
+<section id="register" class="page">
+    <div class="container">
+        <h2 class="section-title">Create Account</h2>
+        <form onsubmit="registerUser(event)">
+            <label>Full Name</label>
+            <input type="text" id="registerName" required placeholder="Enter your full name">
+
+            <label>Email Address</label>
+            <input type="email" id="registerEmail" required placeholder="Enter your email">
+
+            <label>Password</label>
+            <input type="password" id="registerPassword" minlength="6" required placeholder="Create a password">
+
+            <label>Register As</label>
+            <select id="registerRole" required>
+                <option value="">Select your role</option>
+                <option value="Donor">Food Donor</option>
+                <option value="Receiver">Food Receiver</option>
+                <option value="Volunteer">Volunteer</option>
+            </select>
+
+            <button type="submit" class="btn">Register</button>
+        </form>
+    </div>
+</section>
+
+<footer>
+    <p>© 2026 FoodShareConnect | Share Food, Spread Happiness</p>
+</footer>
+
+<script>
+    // Show one page at a time
+    function showPage(pageId, button) {
+        document.querySelectorAll(".page").forEach(function(page) {
+            page.classList.remove("active");
+        });
+
+        const selectedPage = document.getElementById(pageId);
+        if (selectedPage) {
+            selectedPage.classList.add("active");
+        }
+
+        document.querySelectorAll("nav button").forEach(function(navButton) {
+            navButton.classList.remove("active");
+        });
+
+        if (button) {
+            button.classList.add("active");
+        }
+
+        window.scrollTo({ top: 0, behavior: "auto" });
+    }
+
+    // Donate Food demo
+    function donateFood(event) {
+        event.preventDefault();
+
+        const name = document.getElementById("donorName").value.trim();
+        const food = document.getElementById("foodName").value.trim();
+        const quantity = document.getElementById("foodQuantity").value.trim();
+
+        alert(
+            "Thank you, " + name +
+            "! Your donation details have been entered.\nFood: " +
+            food + "\nQuantity: " + quantity +
+            "\n\nDemo only: this has not been saved to a server."
+        );
+
+        event.target.reset();
+    }
+
+    // Find Food demo
+    function findFood(event) {
+        event.preventDefault();
+
+        const location = document.getElementById("receiverLocation").value.trim();
+        const food = document.getElementById("foodRequired").value.trim();
+
+        document.getElementById("findResult").textContent =
+            "Demo search for " + (food || "available food") +
+            " near " + location +
+            ". A database is needed to show real donations.";
+    }
+
+    // Chat demo
+    function sendMessage(event) {
+        event.preventDefault();
+
+        const input = document.getElementById("chatInput");
+        const messageText = input.value.trim();
+
+        if (messageText === "") {
+            return;
+        }
+
+        const messages = document.getElementById("chatMessages");
+        const message = document.createElement("div");
+        message.className = "message sent";
+
+        const sender = document.createElement("small");
+        sender.textContent = "You";
+
+        const text = document.createElement("div");
+        text.textContent = messageText;
+
+        message.appendChild(sender);
+        message.appendChild(text);
+        messages.appendChild(message);
+
+        input.value = "";
+        messages.scrollTop = messages.scrollHeight;
+        input.focus();
+    }
+
+    // Contact demo
+    function contactUs(event) {
+        event.preventDefault();
+        alert("Thank you for contacting FoodShareConnect!");
+        event.target.reset();
+    }
+
+    // Login demo only
+    function loginUser(event) {
+        event.preventDefault();
+
+        alert(
+            "Login form submitted successfully as a demo.\n" +
+            "Real account verification requires a backend."
+        );
+
+        event.target.reset();
+    }
+
+    // Registration demo only
+    function registerUser(event) {
+        event.preventDefault();
+
+        const name = document.getElementById("registerName").value.trim();
+        const role = document.getElementById("registerRole").value;
+
+        alert(
+            "Thank you, " + name + "!\n" +
+            "Selected role: " + role +
+            "\nDemo registration completed. No account was saved."
+        );
+
+        event.target.reset();
+    }
+</script>
+
+</body>
+</html>
