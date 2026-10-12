@@ -254,6 +254,14 @@
         🔔 Notifications
         <span id="notificationCount" hidden></span>
     </button>
+
+    <button id="ngoNotificationBell"
+            type="button"
+            onclick="openNgoNotifications()"
+            hidden>
+        🔔 NGO Alerts
+        <span id="ngoNotificationCount" hidden></span>
+    </button>
     <div class="nav-auth" id="signedInControls" hidden>
         <div class="profile-wrap">
             <button class="profile-avatar" id="profileAvatar" type="button"
@@ -776,6 +784,31 @@
         </div>
     </section>
 
+
+    <section id="ngo-notifications" class="page">
+        <div class="container">
+            <div class="heading-row">
+                <div>
+                    <h2>NGO Food Notifications</h2>
+                    <p class="description">
+                        Available food donation alerts for your NGO.
+                    </p>
+                </div>
+                <button class="btn outline"
+                        type="button"
+                        onclick="openNgoNotifications()">
+                    Refresh
+                </button>
+            </div>
+
+            <div id="ngoNotificationsList"
+                 class="scheme-grid"></div>
+
+            <p id="ngoNotificationsFeedback"
+               role="status"></p>
+        </div>
+    </section>
+
 </main>
 <footer>
     <p>© 2026 FoodShareConnect | Share Food, Spread Happiness</p>
@@ -855,6 +888,7 @@
 
         byId("nav-ngo-dashboard").hidden = !currentNgo;
         byId("notificationBell").hidden = !currentDonor;
+        byId("ngoNotificationBell").hidden = !currentNgo;
 
 
         if (signedIn) {
@@ -1760,6 +1794,104 @@
         }
     }
 
+
+    async function refreshNgoNotificationCount() {
+        const bell = byId("ngoNotificationBell");
+        const count = byId("ngoNotificationCount");
+
+        bell.hidden = !currentNgo;
+        count.hidden = true;
+
+        if (!currentNgo || !currentNgo.verified) return;
+
+        try {
+            const items = await apiRequest(
+                "/api/ngo/notifications/mine"
+            );
+
+            count.textContent = items.length
+                ? "(" + items.length + ")"
+                : "";
+
+            count.hidden = items.length === 0;
+
+        } catch (error) {
+            console.warn("NGO notifications unavailable.");
+        }
+    }
+
+    async function openNgoNotifications() {
+        if (!currentNgo) {
+            showPage("login");
+            return;
+        }
+
+        const list = byId("ngoNotificationsList");
+        list.replaceChildren();
+
+        showPage("ngo-notifications");
+
+        if (!currentNgo.verified) {
+            feedback(
+                "ngoNotificationsFeedback",
+                "Admin verification is pending."
+            );
+            return;
+        }
+
+        feedback(
+            "ngoNotificationsFeedback",
+            "Loading NGO notifications..."
+        );
+
+        try {
+            const items = await apiRequest(
+                "/api/ngo/notifications/mine"
+            );
+
+            feedback("ngoNotificationsFeedback", "");
+
+            if (!items.length) {
+                list.textContent =
+                    "No food notifications available.";
+                return;
+            }
+
+            for (const item of items) {
+                const card = document.createElement("article");
+                card.className = "scheme";
+
+                const title = document.createElement("h3");
+                title.textContent = item.title;
+
+                const message = document.createElement("p");
+                message.textContent = item.message;
+
+                const date = document.createElement("small");
+                const time = new Date(item.createdAt);
+
+                date.textContent = Number.isNaN(time.getTime())
+                    ? item.createdAt
+                    : time.toLocaleString();
+
+                const button = document.createElement("button");
+                button.className = "btn";
+                button.type = "button";
+                button.textContent = "View Available Food";
+                button.onclick = () => openNgoDashboard();
+
+                card.append(title, message, date, button);
+                list.append(card);
+            }
+
+        } catch (error) {
+            feedback(
+                "ngoNotificationsFeedback",
+                error.message || "Could not load notifications."
+            );
+        }
+    }
+
     async function initialiseApp() {
         currentDonor = null;
         currentNgo = null;
@@ -1787,6 +1919,7 @@
             await openAdminDashboard();
         } else if (currentNgo) {
             await openNgoDashboard();
+            await refreshNgoNotificationCount();
         } else {
             showPage("home");
         }
@@ -1812,6 +1945,10 @@
 
     setInterval(() => {
         if (currentDonor) refreshNotificationCount();
+    }, 30000);
+
+    setInterval(() => {
+        if (currentNgo) refreshNgoNotificationCount();
     }, 30000);
 
     initialiseApp();
