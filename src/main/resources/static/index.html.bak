@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodShareConnect</title>
+    <style>
+        :root {
+            --green:#176b45;
+            --dark:#104d32;
+            --gold:#f4b942;
+            --cream:#f7f8f2;
+            --text:#263c30;
+            --muted:#65766b;
+            --border:#dce5dd;
+        }
+        * {box-sizing:border-box;margin:0;padding:0}
+        body {
+            font-family:"Segoe UI",Arial,sans-serif;
+            background:var(--cream);color:var(--text)
+        }
+        button,input,select,textarea {font:inherit}
+        button {cursor:pointer}
+        a {color:var(--green)}
+        [hidden] {display:none!important}
+        button:focus-visible,a:focus-visible {
+            outline:3px solid var(--gold);outline-offset:3px
+        }
+        header {
+            background:var(--green);color:white;
+            padding:24px 5%;display:flex;
+            align-items:center;justify-content:space-between;gap:20px
+        }
+        header h1 {font-size:26px;letter-spacing:-.5px}
+        header p {font-size:12px;color:#dcecdf;margin-top:6px}
+        .header-tag {
+            padding:10px 15px;border:1px solid #ffffff40;
+            border-radius:25px;font-size:12px
+        }
+        nav {
+            display:flex;flex-wrap:wrap;align-items:center;
+            gap:5px;background:var(--dark);padding:12px 4%
+        }
+        nav button {
+            color:white;background:transparent;
+            border:1px solid transparent;border-radius:7px;
+            padding:10px 11px;font-size:13px
+        }
+        nav button:hover,nav button.active {background:#ffffff20}
+        .nav-auth {margin-left:auto;display:flex;gap:8px}
+        nav .login-button {border-color:#ffffff60}
+        nav .register-button {background:var(--gold);color:var(--dark);font-weight:700}
+        nav .register-button:hover,nav .register-button.active {background:#ffce6b}
+        .page {display:none;padding:35px 5%;min-height:65vh}
+        .page.active {display:block}
+        .container {
+            max-width:1100px;margin:auto;background:white;
+            border:1px solid var(--border);border-radius:16px;padding:30px
+        }
+        .narrow {max-width:650px;border-top:5px solid var(--green)}
+        .login-container {max-width:480px}
+        h2 {font-size:29px;color:var(--dark);margin-bottom:12px;letter-spacing:-.6px}
+        h3 {margin-bottom:10px}
+        p {line-height:1.7}
+        .description {color:var(--muted);font-size:14px;margin-bottom:24px}
+        .eyebrow {
+            color:var(--green);font-size:11px;letter-spacing:2px;
+            font-weight:800;display:block;margin-bottom:16px
+        }
+        .hero {
+            max-width:1100px;margin:auto;
+            display:grid;grid-template-columns:1.2fr 1fr;
+            align-items:center;gap:40px;padding:30px 0
+        }
+        .hero h2 {font-size:clamp(40px,5vw,64px);line-height:1.12;letter-spacing:-2px}
+        .hero h2 span {color:#bd7524}
+        .hero p {color:var(--muted);margin:22px 0}
+        .hero-art {
+            background:#e3ecdc;padding:40px 20px;text-align:center;
+            border-radius:70px 18px 70px 18px
+        }
+        .plate {
+            width:220px;height:220px;border-radius:50%;
+            background:#fffef7;border:15px solid #f0f1e8;
+            display:grid;place-items:center;font-size:125px;
+            margin:0 auto 22px;box-shadow:0 15px 30px #104d3215
+        }
+        .hero-art p {font-size:13px;margin:0}
+        .actions {display:flex;flex-wrap:wrap;gap:10px}
+        .btn {
+            display:inline-flex;align-items:center;justify-content:center;
+            border:1px solid var(--green);background:var(--green);
+            color:white;border-radius:8px;padding:11px 18px;
+            font-size:13px;font-weight:650;text-decoration:none
+        }
+        .btn:hover {background:var(--dark)}
+        .btn.secondary {background:var(--gold);border-color:var(--gold);color:var(--dark)}
+        .btn.outline {background:white;color:var(--green)}
+        .btn.danger {background:#fff1ef;color:#a83f32;border-color:#e8b7af}
+        .btn:disabled {opacity:.55;cursor:default}
+        .stats {
+            display:grid;grid-template-columns:repeat(4,1fr);
+            gap:10px;background:var(--dark);border-radius:14px;
+            color:white;padding:25px 15px;margin:25px auto;max-width:1100px
+        }
+        .stats div {text-align:center}
+        .stats strong {display:block;font-size:30px}
+        .stats span {font-size:12px;color:#d7e6da}
+        .steps {max-width:1100px;margin:25px auto;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+        .step {padding:25px;background:white;border:1px solid var(--border);border-radius:12px}
+        .step b {display:block;font-size:25px;color:#bb771f;margin-bottom:12px}
+        .step p {color:var(--muted);font-size:13px}
+        label {display:block;font-size:13px;font-weight:650;margin-bottom:7px}
+        input,select,textarea {
+            width:100%;min-width:0;background:#fcfdfa;
+            padding:12px;border:1px solid var(--border);
+            border-radius:8px;margin-bottom:18px;color:var(--text)
+        }
+        input:focus,select:focus,textarea:focus {
+            outline:2px solid #176b4530;border-color:var(--green)
+        }
+        textarea {resize:vertical}
+        .form-grid {display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
+        .full {grid-column:1/-1}
+        .notice {
+            font-size:13px;line-height:1.7;background:#edf4eb;
+            padding:15px;border-radius:9px;margin-bottom:22px
+        }
+        .feedback {
+            margin-top:16px;padding:12px;background:#fff3d8;
+            color:#694c13;border-radius:8px;font-size:13px;line-height:1.6
+        }
+        .feedback:empty {display:none}
+        .wide-button {width:100%}
+        .auth-switch {text-align:center;margin-top:20px;font-size:14px}
+        .auth-switch button {margin-top:10px}
+        .filters {
+            display:grid;grid-template-columns:1fr 210px;
+            gap:12px;margin:20px 0 5px
+        }
+        .food-grid {display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:20px}
+        .food-card {
+            padding:23px;background:#fcfdfa;
+            border:1px solid var(--border);border-radius:12px;
+            overflow-wrap:anywhere
+        }
+        .food-card h3 {margin-top:14px;color:var(--dark)}
+        .food-card p {font-size:13px;color:var(--muted);margin:6px 0}
+        .food-card a {display:inline-block;margin:10px 0;font-size:13px;font-weight:700}
+        .food-card .actions {margin-top:14px}
+        .badge {
+            display:inline-block;padding:5px 10px;
+            border-radius:20px;background:#e4eee2;color:var(--green);font-size:11px
+        }
+        .badge.expired {background:#fff1d3;color:#795315}
+        .badge.cancelled {background:#ffe5df;color:#9c4337}
+        .badge.collected {background:#e0eaf9;color:#345b92}
+        .empty-state {
+            text-align:center;padding:35px 15px;
+            border:1px dashed var(--border);border-radius:12px;
+            color:var(--muted);margin-top:20px
+        }
+        .heading-row {display:flex;justify-content:space-between;align-items:center;gap:15px}
+        .scheme-grid {display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+        .scheme {
+            border:1px solid var(--border);border-top:4px solid var(--green);
+            border-radius:12px;padding:22px;display:flex;
+            flex-direction:column;align-items:start;gap:12px
+        }
+        .scheme p {flex:1;color:var(--muted);font-size:13px}
+        .chat {max-width:750px;padding:0;overflow:hidden}
+        .chat-header {background:var(--green);color:white;padding:22px}
+        .chat-header h2 {color:white;font-size:24px}
+        .chat-note {background:#edf4eb;padding:15px;font-size:12px;line-height:1.6}
+        .chat-messages {
+            height:300px;overflow:auto;padding:18px;
+            display:flex;flex-direction:column;gap:12px
+        }
+        .message {
+            max-width:85%;background:#e7ece5;padding:12px 15px;
+            border-radius:12px;font-size:14px;overflow-wrap:anywhere
+        }
+        .message.sent {background:#d5edda;align-self:flex-end}
+        .message small {display:block;color:var(--green);font-weight:bold;margin-bottom:5px}
+        .chat-form {display:flex;gap:10px;padding:15px;border-top:1px solid var(--border)}
+        .chat-form input {margin:0;flex:1}
+        footer {background:var(--dark);color:white;text-align:center;padding:28px 20px;margin-top:20px}
+        footer p {font-size:13px}
+        footer small {display:block;color:#cadccd;font-size:11px;margin-top:8px}
+        @media(max-width:1000px){
+            .nav-auth {margin-left:0}
+        }
+        @media(max-width:750px){
+            .header-tag {display:none}
+            header {justify-content:center;text-align:center}
+            nav {justify-content:center}
+            .nav-auth {width:100%;justify-content:center;margin-top:8px}
+            .hero,.steps,.form-grid,.food-grid,.filters,.scheme-grid {grid-template-columns:1fr}
+            .container {padding:22px}
+            .chat {padding:0}
+            .stats {grid-template-columns:repeat(2,1fr);gap:20px}
+            .heading-row {align-items:start;flex-direction:column}
+            .chat-form {flex-wrap:wrap}
+            .chat-form input {flex-basis:100%}
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div>
+        <h1>🌱 FoodShareConnect</h1>
+        <p>Share Food, Spread Happiness, Reduce Waste</p>
+    </div>
+    <span class="header-tag">Good food deserves a second chance</span>
+</header>
+
+<nav aria-label="Main navigation">
+    <button data-page="home" onclick="showPage('home')">Home</button>
+    <button data-page="about" onclick="showPage('about')">About</button>
+    <button data-page="donate" onclick="openNewDonation()">Donate Food</button>
+    <button data-page="find" onclick="showPage('find')">Find Food</button>
+    <button data-page="dashboard" onclick="showPage('dashboard')">Dashboard</button>
+    <button data-page="history" onclick="showPage('history')">History</button>
+    <button data-page="chat" onclick="showPage('chat')">Chat</button>
+    <button data-page="schemes" onclick="showPage('schemes')">Resources</button>
+    <button data-page="contact" onclick="showPage('contact')">Contact</button>
+    <div class="nav-auth">
+        <button class="login-button" data-page="login"
+                onclick="showPage('login')">Login</button>
+        <button class="register-button" data-page="register"
+                onclick="showPage('register')">Donor Registration</button>
+    </div>
+</nav>
+
+<main>
+    <section id="home" class="page">
+        <div class="hero">
+            <div>
+                <span class="eyebrow">SHARE MORE. WASTE LESS.</span>
+                <h2>Extra food.<br><span>Extra kindness.</span></h2>
+                <p>Give surplus food a purpose. Help a good meal reach someone
+                    who needs it and support your community.</p>
+                <div class="actions">
+                    <button class="btn" onclick="openNewDonation()">Donate Food ↗</button>
+                    <button class="btn secondary" onclick="showPage('find')">Find Food</button>
+                </div>
+            </div>
+            <div class="hero-art">
+                <div class="plate" aria-hidden="true">🥗</div>
+                <h3>Every meal matters.</h3>
+                <p>A little sharing can make a big difference.</p>
+            </div>
+        </div>
+        <div id="homeStats" class="stats" aria-label="Local donation statistics"></div>
+        <div class="steps">
+            <article class="step">
+                <b>01</b><h3>List surplus food</h3>
+                <p>Add quantity, location and pickup deadline.</p>
+            </article>
+            <article class="step">
+                <b>02</b><h3>Coordinate pickup</h3>
+                <p>Contact the donor to arrange collection.</p>
+            </article>
+            <article class="step">
+                <b>03</b><h3>Confirm collection</h3>
+                <p>Mark collected food and view the donation history.</p>
+            </article>
+        </div>
+    </section>
+
+    <section id="about" class="page">
+        <div class="container narrow">
+            <span class="eyebrow">OUR PURPOSE</span>
+            <h2>Food is better when shared.</h2>
+            <p class="description">FoodShareConnect helps individuals, hotels,
+                restaurants and organisations list surplus food and coordinate
+                collection.</p>
+            <h3>Our Mission</h3>
+            <p class="description">Reduce avoidable waste and encourage responsible
+                food sharing within local communities.</p>
+            <div class="notice">This local demo stores donations in your browser.
+                The dashboard shows all listings saved here. Separate donor
+                accounts and access controls require a backend.</div>
+            <button class="btn" onclick="showPage('register')">Register as a Donor</button>
+        </div>
+    </section>
+
+    <section id="donate" class="page">
+        <div class="container narrow">
+            <h2 id="donationTitle">Share a Food Donation</h2>
+            <p class="description">Provide accurate food and pickup details.</p>
+            <div class="notice">Share food suitable for consumption. Mention
+                preparation time, storage conditions and known allergens.
+                A pickup deadline does not establish food safety.</div>
+
+            <form id="donationForm" onsubmit="saveDonation(event)">
+                <div class="form-grid">
+                    <div>
+                        <label for="donorName">Donor Name</label>
+                        <input id="donorName" required maxlength="80" autocomplete="name">
+                    </div>
+                    <div>
+                        <label for="donorPhone">Contact Number</label>
+                        <input id="donorPhone" type="tel" required pattern="[0-9]{10}"
+                               maxlength="10" autocomplete="tel"
+                               title="Enter a 10-digit mobile number">
+                    </div>
+                    <div>
+                        <label for="foodName">Food Name</label>
+                        <input id="foodName" required maxlength="100">
+                    </div>
+                    <div>
+                        <label for="foodType">Food Type</label>
+                        <select id="foodType">
+                            <option>Vegetarian</option>
+                            <option>Non-vegetarian</option>
+                            <option>Vegan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="foodQuantity">Quantity</label>
+                        <input id="foodQuantity" type="number" required
+                               min="1" max="10000" step="1">
+                    </div>
+                    <div>
+                        <label for="foodUnit">Unit</label>
+                        <select id="foodUnit">
+                            <option value="meals">Meals</option>
+                            <option value="packets">Packets</option>
+                            <option value="kg">Kilograms</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="donorLocation">Pickup Location</label>
+                        <input id="donorLocation" required maxlength="200">
+                    </div>
+                    <div>
+                        <label for="pickupDeadline">Collect Before</label>
+                        <input id="pickupDeadline" type="datetime-local" required>
+                    </div>
+                    <div class="full">
+                        <label for="foodNotes">Preparation, Storage and Allergens</label>
+                        <textarea id="foodNotes" rows="3" required maxlength="500"></textarea>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button id="donationSubmit" class="btn" type="submit">Publish Donation</button>
+                    <button id="discardEdit" class="btn outline" type="button"
+                            onclick="discardEditing()" hidden>Discard Changes</button>
+                </div>
+                <p id="donationFeedback" class="feedback" role="status" aria-live="polite"></p>
+            </form>
+        </div>
+    </section>
+
+    <section id="find" class="page">
+        <div class="container">
+            <h2>Find Available Food</h2>
+            <p class="description">Browse available listings saved in this browser.
+                Contact the donor before collecting.</p>
+            <div class="filters">
+                <input id="foodSearch" type="search" aria-label="Search food or location"
+                       placeholder="Search food or location…">
+                <select id="foodFilter" aria-label="Food type">
+                    <option value="">All food types</option>
+                    <option>Vegetarian</option>
+                    <option>Non-vegetarian</option>
+                    <option>Vegan</option>
+                </select>
+            </div>
+            <p id="findCount" role="status"></p>
+            <div id="foodList" class="food-grid"></div>
+            <div id="findEmpty" class="empty-state" hidden>
+                <h3>No matching food available</h3>
+                <p>Try another search or add a donation.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="dashboard" class="page">
+        <div class="container">
+            <div class="heading-row">
+                <div>
+                    <h2>Donation Dashboard</h2>
+                    <p class="description">Manage the donations saved in this browser.</p>
+                </div>
+                <button class="btn" onclick="openNewDonation()">+ New Donation</button>
+            </div>
+            <div class="notice">Local demo: this dashboard is not linked to an
+                authenticated donor account. All listings in this browser are shown.</div>
+            <div id="dashboardStats" class="stats"></div>
+            <div class="filters">
+                <input id="dashboardSearch" type="search"
+                       aria-label="Search dashboard" placeholder="Search food, donor or location…">
+                <select id="dashboardFilter" aria-label="Dashboard status">
+                    <option value="">All statuses</option>
+                    <option value="AVAILABLE">Available</option>
+                    <option value="COLLECTED">Collected</option>
+                    <option value="EXPIRED">Expired</option>
+                    <option value="CANCELLED">Cancelled</option>
+                </select>
+            </div>
+            <p id="managementFeedback" class="feedback" role="status" aria-live="polite"></p>
+            <div id="dashboardList" class="food-grid"></div>
+            <div id="dashboardEmpty" class="empty-state" hidden>
+                <h3>No matching donations</h3>
+                <p>Add a donation or change your filters.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="history" class="page">
+        <div class="container">
+            <h2>Donation History</h2>
+            <p class="description">Review collected, expired and cancelled listings.
+                Available donations appear in the dashboard.</p>
+            <div class="filters">
+                <input id="historySearch" type="search"
+                       aria-label="Search history" placeholder="Search donation history…">
+                <select id="historyFilter" aria-label="History status">
+                    <option value="">All history</option>
+                    <option value="COLLECTED">Collected</option>
+                    <option value="EXPIRED">Expired</option>
+                    <option value="CANCELLED">Cancelled</option>
+                </select>
+            </div>
+            <div id="historyList" class="food-grid"></div>
+            <div id="historyEmpty" class="empty-state" hidden>
+                <h3>No matching history</h3>
+                <p>Completed, expired or cancelled donations will appear here.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="chat" class="page">
+        <div class="container chat">
+            <div class="chat-header">
+                <h2>Donor & Receiver Chat</h2>
+                <p>Discuss food availability and pickup.</p>
+            </div>
+            <div class="chat-note">Chat preview only. Messages are not sent to
+                another user and disappear when you refresh.</div>
+            <div id="chatMessages" class="chat-messages" role="log"
+                 aria-live="polite" aria-label="Chat messages">
+                <div class="message"><small>FoodShareConnect</small>
+                    Welcome! Try the message preview below.
+                </div>
+            </div>
+            <form class="chat-form" onsubmit="sendMessage(event)">
+                <input id="chatInput" required maxlength="1000"
+                       aria-label="Message" placeholder="Type a message…" autocomplete="off">
+                <button class="btn" type="submit">Send</button>
+            </form>
+        </div>
+    </section>
+
+    <section id="schemes" class="page">
+        <div class="container">
+            <h2>Government Resources</h2>
+            <p class="description">Explore external government portals.</p>
+            <div class="scheme-grid">
+                <article class="scheme">
+                    <h3>National Food Security Portal</h3>
+                    <p>Food security information and resources.</p>
+                    <a class="btn" href="https://nfsa.gov.in/" target="_blank"
+                       rel="noopener noreferrer">Visit Portal ↗</a>
+                </article>
+                <article class="scheme">
+                    <h3>Food and Public Distribution</h3>
+                    <p>Department information and resources.</p>
+                    <a class="btn" href="https://dfpd.gov.in/" target="_blank"
+                       rel="noopener noreferrer">Visit Portal ↗</a>
+                </article>
+                <article class="scheme">
+                    <h3>Women and Child Development</h3>
+                    <p>Explore resources from the ministry portal.</p>
+                    <a class="btn" href="https://wcd.gov.in/" target="_blank"
+                       rel="noopener noreferrer">Visit Portal ↗</a>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="page">
+        <div class="container narrow">
+            <h2>Contact Us</h2>
+            <p class="description">Preview your question or suggestion here.</p>
+            <form onsubmit="contactUs(event)">
+                <label for="contactName">Name</label>
+                <input id="contactName" required maxlength="80" autocomplete="name">
+                <label for="contactEmail">Email</label>
+                <input id="contactEmail" type="email" required autocomplete="email">
+                <label for="contactMessage">Message</label>
+                <textarea id="contactMessage" rows="4" required maxlength="2000"></textarea>
+                <button class="btn" type="submit">Submit Enquiry</button>
+            </form>
+            <p id="contactFeedback" class="feedback" role="status" aria-live="polite"></p>
+        </div>
+    </section>
+
+    <section id="login" class="page">
+        <div class="container narrow login-container">
+            <h2>Welcome Back</h2>
+            <p class="description">Login form preview for donor accounts.</p>
+            <form onsubmit="loginUser(event)">
+                <label for="loginEmail">Email Address</label>
+                <input id="loginEmail" type="email" required autocomplete="username">
+                <label for="loginPassword">Password</label>
+                <input id="loginPassword" type="password" required autocomplete="current-password">
+                <button class="btn wide-button" type="submit">Login</button>
+            </form>
+            <p id="loginFeedback" class="feedback" role="status" aria-live="polite"></p>
+            <div class="auth-switch">
+                <p>New to FoodShareConnect?</p>
+                <button class="btn secondary" onclick="showPage('register')">Register as a Donor</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="register" class="page">
+        <div class="container narrow">
+            <h2>Donor Registration</h2>
+            <p class="description">Give surplus food a purpose.</p>
+            <form onsubmit="registerUser(event)">
+                <div class="form-grid">
+                    <div>
+                        <label for="registerName">Full Name</label>
+                        <input id="registerName" required maxlength="80" autocomplete="name">
+                    </div>
+                    <div>
+                        <label for="registerPhone">Mobile Number</label>
+                        <input id="registerPhone" type="tel" required
+                               pattern="[0-9]{10}" maxlength="10"
+                               title="Enter a 10-digit mobile number" autocomplete="tel">
+                    </div>
+                    <div class="full">
+                        <label for="registerEmail">Email Address</label>
+                        <input id="registerEmail" type="email" required
+                               maxlength="254" autocomplete="username">
+                    </div>
+                    <div>
+                        <label for="registerDonorType">Donor Type</label>
+                        <select id="registerDonorType" required>
+                            <option value="">Select donor type</option>
+                            <option>Individual</option><option>Restaurant</option>
+                            <option>Hotel</option><option>Catering Service</option>
+                            <option>Organisation</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="registerOrganisation">Organisation (optional)</label>
+                        <input id="registerOrganisation" maxlength="120" autocomplete="organization">
+                    </div>
+                    <div class="full">
+                        <label for="registerAddress">Pickup Address</label>
+                        <textarea id="registerAddress" required rows="3" maxlength="300"
+                                  autocomplete="street-address"></textarea>
+                    </div>
+                    <div>
+                        <label for="registerPassword">Password</label>
+                        <input id="registerPassword" type="password" required
+                               minlength="8" autocomplete="new-password"
+                               placeholder="Minimum 8 characters">
+                    </div>
+                    <div>
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input id="confirmPassword" type="password" required
+                               minlength="8" autocomplete="new-password">
+                    </div>
+                </div>
+                <button class="btn wide-button" type="submit">Register as a Donor</button>
+            </form>
+            <p id="registerFeedback" class="feedback" role="status" aria-live="polite"></p>
+            <div class="auth-switch">
+                <p>Already have an account?</p>
+                <button class="btn outline" onclick="showPage('login')">Login</button>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <p>© 2026 FoodShareConnect | Share Food, Spread Happiness</p>
+    <small>Local demo · Donations stay in this browser ·
+        Accounts, chat and enquiries require a backend</small>
+</footer>
+
+<script>
+    "use strict";
+
+    const STORAGE_KEY = "foodshareconnect.local-donations.v2";
+    let donations = [];
+    let editingId = null;
+
+    const byId = id => document.getElementById(id);
+    const value = id => byId(id).value.trim();
+    const feedback = (id, text) => { byId(id).textContent = text; };
+
+    function textElement(tag, text, className) {
+        const element = document.createElement(tag);
+        element.textContent = text;
+        if (className) element.className = className;
+        return element;
+    }
+
+    function statusOf(item) {
+        if (item.status === "COLLECTED") return "COLLECTED";
+        if (item.status === "CANCELLED") return "CANCELLED";
+        return new Date(item.deadline).getTime() > Date.now()
+            ? "AVAILABLE" : "EXPIRED";
+    }
+
+    function validDonation(item) {
+        const fields = ["id","name","phone","food","type","unit",
+                        "location","deadline","notes"];
+        return item &&
+            fields.every(key => typeof item[key] === "string") &&
+            /^[0-9]{10}$/.test(item.phone) &&
+            Number.isFinite(item.quantity) && item.quantity > 0 &&
+            Number.isFinite(new Date(item.deadline).getTime()) &&
+            ["AVAILABLE","COLLECTED","CANCELLED"].includes(item.status);
+    }
+
+    function loadDonations() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+            donations = Array.isArray(saved) ? saved.filter(validDonation) : [];
+        } catch {
+            donations = [];
+            feedback("managementFeedback",
+                "Saved donations could not be loaded. Browser storage may be unavailable.");
+        }
+    }
+
+    function persist(next) {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+            donations = next;
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    function showPage(pageId) {
+        const target = byId(pageId);
+        if (!target || !target.classList.contains("page")) return;
+
+        document.querySelectorAll(".page").forEach(page =>
+            page.classList.toggle("active", page.id === pageId)
+        );
+
+        document.querySelectorAll("nav button[data-page]").forEach(button => {
+            const active = button.dataset.page === pageId;
+            button.classList.toggle("active", active);
+            if (active) button.setAttribute("aria-current", "page");
+            else button.removeAttribute("aria-current");
+        });
+
+        renderAll();
+        window.scrollTo({top:0, behavior:"auto"});
+    }
+
+    function resetDonationForm() {
+        editingId = null;
+        byId("donationForm").reset();
+        byId("donationTitle").textContent = "Share a Food Donation";
+        byId("donationSubmit").textContent = "Publish Donation";
+        byId("discardEdit").hidden = true;
+        feedback("donationFeedback", "");
+    }
+
+    function openNewDonation() {
+        if (editingId && !confirm("Discard the unsaved donation changes?")) return;
+        resetDonationForm();
+        showPage("donate");
+    }
+
+    function discardEditing() {
+        if (!confirm("Discard the unsaved changes?")) return;
+        resetDonationForm();
+        showPage("dashboard");
+    }
+
+    function editDonation(id) {
+        const item = donations.find(d => d.id === id);
+        if (!item || !["AVAILABLE","EXPIRED"].includes(statusOf(item))) return;
+
+        if (editingId && editingId !== id &&
+            !confirm("Discard the current unsaved changes?")) return;
+
+        editingId = id;
+        const fields = {
+            donorName:item.name,
+            donorPhone:item.phone,
+            foodName:item.food,
+            foodType:item.type,
+            foodQuantity:item.quantity,
+            foodUnit:item.unit,
+            donorLocation:item.location,
+            pickupDeadline:item.deadline,
+            foodNotes:item.notes
+        };
+        Object.entries(fields).forEach(([key, val]) => {
+            byId(key).value = val;
+        });
+
+        byId("donationTitle").textContent = "Edit Food Donation";
+        byId("donationSubmit").textContent = "Save Changes";
+        byId("discardEdit").hidden = false;
+        feedback("donationFeedback", "");
+        showPage("donate");
+    }
+
+    function saveDonation(event) {
+        event.preventDefault();
+
+        const name = value("donorName");
+        const phone = value("donorPhone");
+        const food = value("foodName");
+        const quantity = Number(value("foodQuantity"));
+        const location = value("donorLocation");
+        const deadline = value("pickupDeadline");
+        const notes = value("foodNotes");
+        const deadlineTime = new Date(deadline).getTime();
+
+        if (!name || !food || !location || !notes) {
+            feedback("donationFeedback", "Please fill in all donation details.");
+            return;
+        }
+
+        if (!/^[0-9]{10}$/.test(phone)) {
+            feedback("donationFeedback", "Enter a 10-digit mobile number.");
+            return;
+        }
+
+        if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10000) {
+            feedback("donationFeedback", "Quantity must be a whole number from 1 to 10000.");
+            return;
+        }
+
+        if (!Number.isFinite(deadlineTime) || deadlineTime <= Date.now()) {
+            feedback("donationFeedback", "Select a pickup deadline in the future.");
+            byId("pickupDeadline").focus();
+            return;
+        }
+
+        // Reload before writing so another tab's latest changes are preserved.
+        loadDonations();
+        const original = editingId
+            ? donations.find(item => item.id === editingId)
+            : null;
+
+        if (editingId && (!original ||
+            !["AVAILABLE","EXPIRED"].includes(statusOf(original)))) {
+            feedback("donationFeedback",
+                "This donation is no longer editable. Return to the dashboard.");
+            return;
+        }
+
+        const item = {
+            ...(original || {}),
+            id: original ? original.id :
+                (window.crypto?.randomUUID
+                    ? window.crypto.randomUUID()
+                    : Date.now() + "-" + Math.random().toString(36).slice(2)),
+            name, phone, food, quantity, location, deadline, notes,
+            type:value("foodType"),
+            unit:value("foodUnit"),
+            status:"AVAILABLE",
+            createdAt:original?.createdAt || new Date().toISOString(),
+            updatedAt:new Date().toISOString()
+        };
+
+        const wasEditing = Boolean(editingId);
+        const next = wasEditing
+            ? donations.map(d => d.id === editingId ? item : d)
+            : [item, ...donations];
+
+        if (!persist(next)) {
+            feedback("donationFeedback",
+                "Could not save. Check browser storage settings and try again.");
+            return;
+        }
+
+        resetDonationForm();
+        feedback("managementFeedback",
+            wasEditing ? "Donation updated successfully." : "Donation published successfully.");
+        byId("dashboardSearch").value = "";
+        byId("dashboardFilter").value = "";
+        showPage("dashboard");
+    }
+
+    function changeStatus(id, nextStatus) {
+        loadDonations();
+        const item = donations.find(d => d.id === id);
+        if (!item) return;
+
+        const current = statusOf(item);
+        const allowed = nextStatus === "COLLECTED"
+            ? current === "AVAILABLE"
+            : nextStatus === "CANCELLED" &&
+              ["AVAILABLE","EXPIRED"].includes(current);
+
+        if (!allowed) {
+            feedback("managementFeedback", "This donation's status has changed.");
+            renderAll();
+            return;
+        }
+
+        const question = nextStatus === "COLLECTED"
+            ? `Confirm that "${item.food}" has been collected?`
+            : `Cancel the donation "${item.food}"?`;
+
+        if (!confirm(question)) return;
+
+        const timestamp = new Date().toISOString();
+        const next = donations.map(d => d.id === id
+            ? {
+                ...d,
+                status:nextStatus,
+                updatedAt:timestamp,
+                closedAt:timestamp
+              }
+            : d
+        );
+
+        if (!persist(next)) {
+            feedback("managementFeedback", "Could not save the status. Please try again.");
+            showPage("dashboard");
+            return;
+        }
+
+        feedback("managementFeedback",
+            nextStatus === "COLLECTED" ? "Donation marked as collected." : "Donation cancelled.");
+        showPage("dashboard");
+    }
+
+    function actionButton(label, className, handler) {
+        const button = textElement("button", label, className);
+        button.type = "button";
+        button.addEventListener("click", handler);
+        return button;
+    }
+
+    function donationCard(item, mode) {
+        const status = statusOf(item);
+        const label = status[0] + status.slice(1).toLowerCase();
+        const card = document.createElement("article");
+        card.className = "food-card";
+
+        card.append(
+            textElement("span", label, "badge " + status.toLowerCase()),
+            textElement("h3", item.food),
+            textElement("p", `${item.type} · ${item.quantity} ${item.unit}`),
+            textElement("p", "Donor: " + item.name),
+            textElement("p", "Pickup: " + item.location),
+            textElement("p", "Collect before: " + new Date(item.deadline).toLocaleString()),
+            textElement("p", "Details: " + item.notes)
+        );
+
+        if (item.closedAt && Number.isFinite(new Date(item.closedAt).getTime())) {
+            card.append(textElement(
+                "p", label + " on: " + new Date(item.closedAt).toLocaleString()
+            ));
+        }
+
+        if (status === "AVAILABLE") {
+            const link = textElement("a", "Call donor: " + item.phone);
+            link.href = "tel:" + item.phone;
+            card.append(link);
+        }
+
+        if (mode === "dashboard") {
+            const actions = document.createElement("div");
+            actions.className = "actions";
+
+            if (["AVAILABLE","EXPIRED"].includes(status)) {
+                actions.append(
+                    actionButton("Edit", "btn outline", () => editDonation(item.id)),
+                    actionButton("Cancel Donation", "btn danger",
+                        () => changeStatus(item.id, "CANCELLED"))
+                );
+            }
+
+            if (status === "AVAILABLE") {
+                actions.append(actionButton(
+                    "Mark Collected", "btn",
+                    () => changeStatus(item.id, "COLLECTED")
+                ));
+            }
+
+            card.append(actions);
+        }
+
+        return card;
+    }
+
+    function matchesSearch(item, query) {
+        return `${item.food} ${item.name} ${item.location}`
+            .toLowerCase().includes(query);
+    }
+
+    function renderList(listId, emptyId, items, mode) {
+        const list = byId(listId);
+        list.replaceChildren();
+        items.forEach(item => list.append(donationCard(item, mode)));
+        byId(emptyId).hidden = items.length > 0;
+    }
+
+    function renderStats(id) {
+        const stats = [
+            ["Total", donations.length],
+            ["Available", donations.filter(d => statusOf(d) === "AVAILABLE").length],
+            ["Collected", donations.filter(d => statusOf(d) === "COLLECTED").length],
+            ["Expired", donations.filter(d => statusOf(d) === "EXPIRED").length]
+        ];
+
+        const container = byId(id);
+        container.replaceChildren();
+        stats.forEach(([label, count]) => {
+            const block = document.createElement("div");
+            block.append(textElement("strong", count), textElement("span", label));
+            container.append(block);
+        });
+    }
+
+    function renderAll() {
+        renderStats("homeStats");
+        renderStats("dashboardStats");
+
+        const foodQuery = value("foodSearch").toLowerCase();
+        const foodType = value("foodFilter");
+        const available = donations.filter(d =>
+            statusOf(d) === "AVAILABLE" &&
+            matchesSearch(d, foodQuery) &&
+            (!foodType || d.type === foodType)
+        );
+
+        renderList("foodList", "findEmpty", available, "find");
+        byId("findCount").textContent = available.length + " available listing(s).";
+
+        const dashboardQuery = value("dashboardSearch").toLowerCase();
+        const dashboardStatus = value("dashboardFilter");
+        const dashboardItems = donations.filter(d =>
+            matchesSearch(d, dashboardQuery) &&
+            (!dashboardStatus || statusOf(d) === dashboardStatus)
+        );
+        renderList("dashboardList", "dashboardEmpty", dashboardItems, "dashboard");
+
+        const historyQuery = value("historySearch").toLowerCase();
+        const historyStatus = value("historyFilter");
+        const historyItems = donations.filter(d =>
+            statusOf(d) !== "AVAILABLE" &&
+            matchesSearch(d, historyQuery) &&
+            (!historyStatus || statusOf(d) === historyStatus)
+        );
+        renderList("historyList", "historyEmpty", historyItems, "history");
+    }
+
+    async function registerUser(event) {
+        event.preventDefault();
+
+        if (!value("registerName") || !value("registerAddress")) {
+            feedback("registerFeedback", "Enter your full name and pickup address.");
+            return;
+        }
+
+        const password = byId("registerPassword").value;
+        if (password !== byId("confirmPassword").value) {
+            feedback("registerFeedback", "Passwords do not match.");
+            byId("confirmPassword").focus();
+            return;
+        }
+
+        const payload = {
+            name: value("registerName"),
+            email: value("registerEmail"),
+            password: password,
+            phone: value("registerPhone"),
+            donorType: value("registerDonorType"),
+            organisation: value("registerOrganisation"),
+            address: value("registerAddress")
+        };
+
+        try {
+            feedback("registerFeedback", "Creating your account…");
+
+            const csrfResponse = await fetch("/api/auth/csrf", {
+                credentials: "same-origin"
+            });
+            if (!csrfResponse.ok) {
+                throw new Error("Could not connect to the server. Please try again.");
+            }
+            const csrf = await csrfResponse.json();
+
+            const response = await fetch("/api/auth/register", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json",
+                    [csrf.headerName]: csrf.token
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(result.message || "Registration failed. Please check your details.");
+            }
+
+            feedback("registerFeedback", result.message || "Registration successful. Please login.");
+            event.target.reset();
+        } catch (error) {
+            feedback("registerFeedback", error.message || "Could not connect to the server.");
+        } finally {
+            byId("registerPassword").value = "";
+            byId("confirmPassword").value = "";
+        }
+    }
+
+    async function loginUser(event) {
+        event.preventDefault();
+        const password = byId("loginPassword").value;
+
+        try {
+            feedback("loginFeedback", "Signing in…");
+
+            const csrfResponse = await fetch("/api/auth/csrf", {
+                credentials: "same-origin"
+            });
+            if (!csrfResponse.ok) {
+                throw new Error("Could not connect to the server.");
+            }
+            const csrf = await csrfResponse.json();
+
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                    [csrf.headerName]: csrf.token
+                },
+                body: new URLSearchParams({
+                    email: value("loginEmail"),
+                    password: password
+                })
+            });
+
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(result.message || "Invalid email or password.");
+            }
+
+            const meResponse = await fetch("/api/auth/me", {
+                credentials: "same-origin"
+            });
+            const donor = await meResponse.json().catch(() => ({}));
+            if (!meResponse.ok) {
+                throw new Error("Login succeeded, but the session could not be verified.");
+            }
+
+            feedback("loginFeedback", `Login successful. Welcome, ${donor.name}!`);
+            event.target.reset();
+        } catch (error) {
+            feedback("loginFeedback", error.message || "Could not connect to the server.");
+        } finally {
+            byId("loginPassword").value = "";
+        }
+    }
+
+    function sendMessage(event) {
+        event.preventDefault();
+        const messageText = value("chatInput");
+        if (!messageText) return;
+
+        const message = document.createElement("div");
+        message.className = "message sent";
+        message.append(
+            textElement("small", "You · Preview"),
+            textElement("div", messageText)
+        );
+
+        const messages = byId("chatMessages");
+        messages.append(message);
+        byId("chatInput").value = "";
+        messages.scrollTop = messages.scrollHeight;
+        byId("chatInput").focus();
+    }
+
+    function contactUs(event) {
+        event.preventDefault();
+        if (!value("contactName") || !value("contactMessage")) {
+            feedback("contactFeedback", "Enter your name and message.");
+            return;
+        }
+        feedback("contactFeedback",
+            "Enquiry preview completed. No message was sent. " +
+            "A backend or contact service is needed to receive enquiries.");
+    }
+
+    ["foodSearch","dashboardSearch","historySearch"].forEach(id =>
+        byId(id).addEventListener("input", renderAll)
+    );
+
+    ["foodFilter","dashboardFilter","historyFilter"].forEach(id =>
+        byId(id).addEventListener("change", renderAll)
+    );
+
+    window.addEventListener("storage", event => {
+        if (event.key === STORAGE_KEY || event.key === null) {
+            loadDonations();
+            renderAll();
+        }
+    });
+
+    setInterval(renderAll, 30000);
+    loadDonations();
+    showPage("home");
+</script>
+</body>
+</html>

@@ -51,7 +51,8 @@ public class SecurityConfig {
                         "/error",
                         "/api/auth/csrf",
                         "/api/auth/register",
-                        "/api/health"
+                        "/api/health",
+                        "/api/donations/available"
                 ).permitAll()
                 .anyRequest().authenticated()
         );
