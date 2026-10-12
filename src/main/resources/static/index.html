@@ -244,8 +244,8 @@
     <button data-page="contact" onclick="showPage('contact')">Contact</button>
     <div class="nav-auth" id="guestControls">
         <button class="login-button" data-page="login" onclick="showPage('login')">Login</button>
-        <button type="button" onclick="showPage('ngo-register')">NGO Registration</button>
-        <button class="register-button" data-page="register" onclick="showPage('register')">Donor Registration</button>
+        <button class="register-button" data-page="register-choice"
+                onclick="showPage('register-choice')">Register</button>
     </div>
     <div class="nav-auth" id="signedInControls" hidden>
         <div class="profile-wrap">
@@ -307,7 +307,7 @@
             <p class="description">Reduce avoidable waste and encourage responsible
                 food sharing within local communities.</p>
             <div class="notice">Donor accounts and food listings are managed by the FoodShareConnect server. Each donor dashboard shows that donor’s own listings.</div>
-            <button class="btn" onclick="showPage('register')">Register as a Donor</button>
+            <button class="btn" onclick="showPage('register-choice')">Register</button>
         </div>
     </section>
     <section id="donate" class="page">
@@ -557,7 +557,7 @@
             <p id="loginFeedback" class="feedback" role="status" aria-live="polite"></p>
             <div class="auth-switch">
                 <p>New to FoodShareConnect?</p>
-                <button class="btn secondary" type="button" onclick="showPage('register')">Register as a Donor</button>
+                <button class="btn secondary" type="button" onclick="showPage('register-choice')">Register</button>
             </div>
         </div>
     </section>
@@ -678,6 +678,51 @@
             <div id="ngoFoodList" class="food-grid"></div>
             <h3>My Accepted Donations</h3>
             <div id="ngoAcceptedList"></div>
+        </div>
+    </section>
+
+
+    <section id="register-choice" class="page">
+        <div class="container narrow">
+            <div style="text-align:center;margin-bottom:28px">
+                <h2>Create Your Account</h2>
+                <p class="description">
+                    How would you like to join FoodShareConnect?
+                </p>
+            </div>
+
+            <div class="scheme-grid"
+                 style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+
+                <article class="scheme" style="text-align:center">
+                    <div style="font-size:48px">🤝</div>
+                    <h3>Donor Registration</h3>
+                    <p>Donate surplus food and help people in need.</p>
+                    <button class="btn" type="button"
+                            onclick="showPage('register')">
+                        Register as Donor
+                    </button>
+                </article>
+
+                <article class="scheme" style="text-align:center">
+                    <div style="font-size:48px">🏢</div>
+                    <h3>NGO Registration</h3>
+                    <p>Register your NGO to collect donated food.</p>
+                    <button class="btn" type="button"
+                            onclick="showPage('ngo-register')">
+                        Register as NGO
+                    </button>
+                </article>
+
+            </div>
+
+            <div style="text-align:center;margin-top:25px">
+                <p>Already have an account?</p>
+                <button class="btn outline" type="button"
+                        onclick="showPage('login')">
+                    Login
+                </button>
+            </div>
         </div>
     </section>
 
