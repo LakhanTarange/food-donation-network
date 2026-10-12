@@ -40,6 +40,8 @@ public class Donation {
     @Column(nullable = false, length = 1000)
     private String notes;
 
+    private Long acceptedNgoId;
+
     @Column(nullable = false, length = 20)
     private String status = "AVAILABLE";
 
@@ -63,6 +65,8 @@ public class Donation {
     public String getLocation() { return location; }
     public String getDeadline() { return deadline; }
     public String getNotes() { return notes; }
+    public Long getAcceptedNgoId() { return acceptedNgoId; }
+    public void setAcceptedNgoId(Long id) { acceptedNgoId = id; }
     public String getStatus() { return status; }
     public String getCreatedAt() { return createdAt; }
     public String getUpdatedAt() { return updatedAt; }
