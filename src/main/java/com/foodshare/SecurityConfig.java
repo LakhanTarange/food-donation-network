@@ -21,18 +21,32 @@ public class SecurityConfig {
     }
 
     @Bean
-    UserDetailsService userDetailsService(DonorRepository repository) {
+    UserDetailsService userDetailsService(
+            DonorRepository repository,
+            NgoRepository ngoRepository) {
         return email -> {
             String normalisedEmail =
                     email.trim().toLowerCase(Locale.ROOT);
 
-            Donor donor = repository.findByEmail(normalisedEmail)
-                    .orElseThrow(() ->
-                            new UsernameNotFoundException("Account not found"));
+            var donor = repository.findByEmail(normalisedEmail);
 
-            return User.withUsername(donor.getEmail())
-                    .password(donor.getPasswordHash())
-                    .roles("DONOR")
+            if (donor.isPresent()) {
+                Donor account = donor.get();
+
+                return User.withUsername(account.getEmail())
+                        .password(account.getPasswordHash())
+                        .roles("DONOR")
+                        .build();
+            }
+
+            Ngo ngo = ngoRepository.findByEmail(normalisedEmail)
+                    .orElseThrow(() ->
+                            new UsernameNotFoundException(
+                                    "Account not found"));
+
+            return User.withUsername(ngo.getEmail())
+                    .password(ngo.getPasswordHash())
+                    .roles("NGO")
                     .build();
         };
     }
@@ -51,9 +65,13 @@ public class SecurityConfig {
                         "/error",
                         "/api/auth/csrf",
                         "/api/auth/register",
+                        "/api/ngo/register",
                         "/api/health",
                         "/api/donations/available"
                 ).permitAll()
+                .requestMatchers("/api/ngo/me").hasRole("NGO")
+                .requestMatchers("/api/auth/me").hasRole("DONOR")
+                .requestMatchers("/api/donations/**").hasRole("DONOR")
                 .anyRequest().authenticated()
         );
 
