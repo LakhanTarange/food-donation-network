@@ -16,15 +16,18 @@ public class DonationController {
     private final DonationRepository donations;
     private final DonorRepository donors;
     private final NotificationService notifications;
+    private final DonorNotificationService donorNotifications;
 
     public DonationController(
             DonationRepository donations,
             DonorRepository donors,
-            NotificationService notifications
+            NotificationService notifications,
+            DonorNotificationService donorNotifications
     ) {
         this.donations = donations;
         this.donors = donors;
         this.notifications = notifications;
+        this.donorNotifications = donorNotifications;
     }
 
     public record DonationRequest(
@@ -87,6 +90,13 @@ public class DonationController {
         item.setCreatedAt(now);
         item.setUpdatedAt(now);
         Donation saved = donations.save(item);
+        donorNotifications.notifyDonor(
+            saved,
+            "Thank You for Donating!",
+            "Your donation of " + saved.getQuantity() + " " +
+            saved.getUnit() + " " + saved.getFood() +
+            " has been published. Thank you for helping reduce food waste!"
+        );
         notifications.onDonationCreated(saved, donor);
         return view(saved);
     }

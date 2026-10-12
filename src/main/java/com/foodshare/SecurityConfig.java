@@ -82,6 +82,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/ngo/donations/**").hasRole("NGO")
                 .requestMatchers("/api/ngo/me").hasRole("NGO")
+                .requestMatchers("/api/notifications/**").hasRole("DONOR")
                 .requestMatchers("/api/auth/me").hasRole("DONOR")
                 .requestMatchers("/api/donations/**").hasRole("DONOR")
                 .anyRequest().authenticated()

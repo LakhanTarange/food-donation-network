@@ -16,12 +16,15 @@ public class NgoDonationController {
 
     private final NgoRepository ngos;
     private final DonationRepository donations;
+    private final DonorNotificationService notifications;
 
     public NgoDonationController(
             NgoRepository ngos,
-            DonationRepository donations) {
+            DonationRepository donations,
+            DonorNotificationService notifications) {
         this.ngos = ngos;
         this.donations = donations;
+        this.notifications = notifications;
     }
 
     private Ngo currentNgo(Principal principal) {
@@ -122,6 +125,14 @@ public class NgoDonationController {
                 "Donation unavailable or already accepted");
         }
 
+        Donation accepted = donations.findById(id).orElseThrow();
+        notifications.notifyDonor(
+            accepted,
+            "Food Donation Accepted",
+            "Your donation has been accepted by " + ngo.getName() +
+            ". The NGO will coordinate pickup with you."
+        );
+
         return Map.of(
             "message", "Food donation accepted successfully",
             "status", "ACCEPTED"
@@ -145,6 +156,14 @@ public class NgoDonationController {
                 HttpStatus.CONFLICT,
                 "Donation not accepted by your NGO");
         }
+
+        Donation completed = donations.findById(id).orElseThrow();
+        notifications.notifyDonor(
+            completed,
+            "Food Pickup Completed",
+            "Your food donation has been collected by " +
+            ngo.getName() + ". Thank you for making a difference!"
+        );
 
         return Map.of(
             "message", "Food pickup completed successfully",
