@@ -17,17 +17,20 @@ public class DonationController {
     private final DonorRepository donors;
     private final NotificationService notifications;
     private final DonorNotificationService donorNotifications;
+    private final NgoNotificationService ngoNotifications;
 
     public DonationController(
             DonationRepository donations,
             DonorRepository donors,
             NotificationService notifications,
-            DonorNotificationService donorNotifications
+            DonorNotificationService donorNotifications,
+            NgoNotificationService ngoNotifications
     ) {
         this.donations = donations;
         this.donors = donors;
         this.notifications = notifications;
         this.donorNotifications = donorNotifications;
+        this.ngoNotifications = ngoNotifications;
     }
 
     public record DonationRequest(
@@ -97,6 +100,7 @@ public class DonationController {
             saved.getUnit() + " " + saved.getFood() +
             " has been published. Thank you for helping reduce food waste!"
         );
+        ngoNotifications.notifyAvailable(saved);
         notifications.onDonationCreated(saved, donor);
         return view(saved);
     }
