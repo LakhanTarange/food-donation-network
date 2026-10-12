@@ -25,6 +25,18 @@ public class DonorNotification {
     @Column(nullable = false, length = 40)
     private String createdAt;
 
+
+    @Column(nullable = false)
+    private boolean isRead = false;
+
+    public boolean isRead() {
+        return isRead;
+    }
+
+    public void setRead(boolean read) {
+        this.isRead = read;
+    }
+
     protected DonorNotification() {}
 
     public DonorNotification(Long donorId, Long donationId,
