@@ -15,13 +15,16 @@ import org.springframework.web.server.ResponseStatusException;
 public class DonationController {
     private final DonationRepository donations;
     private final DonorRepository donors;
+    private final NotificationService notifications;
 
     public DonationController(
             DonationRepository donations,
-            DonorRepository donors
+            DonorRepository donors,
+            NotificationService notifications
     ) {
         this.donations = donations;
         this.donors = donors;
+        this.notifications = notifications;
     }
 
     public record DonationRequest(
@@ -83,7 +86,9 @@ public class DonationController {
         item.setStatus("AVAILABLE");
         item.setCreatedAt(now);
         item.setUpdatedAt(now);
-        return view(donations.save(item));
+        Donation saved = donations.save(item);
+        notifications.onDonationCreated(saved, donor);
+        return view(saved);
     }
 
     @PutMapping("/{id}")
