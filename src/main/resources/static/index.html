@@ -255,7 +255,7 @@
             <div class="profile-menu" id="profileMenu" hidden>
                 <strong id="profileName"></strong>
                 <span id="profileEmail"></span>
-                <button class="btn outline" type="button" onclick="showPage('dashboard')">My Dashboard</button>
+                <button class="btn outline" type="button" onclick="currentNgo ? openNgoDashboard() : showPage('dashboard')">My Dashboard</button>
                 <button class="btn danger" type="button" onclick="logoutUser()">Logout</button>
             </div>
         </div>
@@ -794,25 +794,26 @@
     }
 
     function updateAuthUI() {
-        const signedIn = Boolean(currentDonor);
+        const signedIn = Boolean(currentDonor || currentNgo);
         byId("guestControls").hidden = signedIn;
         byId("signedInControls").hidden = !signedIn;
 
         if (signedIn) {
-            const name = currentDonor.name || currentDonor.email || "Donor";
+            const account = currentDonor || currentNgo;
+            const name = account.name || account.email || "User";
             const initials = name.trim().split(/\s+/).slice(0, 2)
                 .map(part => part[0]).join("").toUpperCase();
 
             byId("profileAvatar").textContent = initials || "D";
             byId("profileName").textContent = name;
-            byId("profileEmail").textContent = currentDonor.email || "";
+            byId("profileEmail").textContent = account.email || "";
         } else {
             byId("profileMenu").hidden = true;
         }
     }
 
     function toggleProfileMenu() {
-        if (!currentDonor) return;
+        if (!currentDonor && !currentNgo) return;
 
         const menu = byId("profileMenu");
         menu.hidden = !menu.hidden;
@@ -823,6 +824,7 @@
         try {
             await apiRequest("/api/auth/logout", {method:"POST"});
             currentDonor = null;
+            currentNgo = null;
             donations = [];
             await loadDonations();
             updateAuthUI();
@@ -1355,9 +1357,93 @@
         }
     }
 
+
+    function ngoFoodCard(item, accepted = false) {
+        const card = document.createElement("article");
+        card.className = "scheme";
+
+        const title = document.createElement("h3");
+        title.textContent = item.food;
+
+        const details = document.createElement("p");
+        details.textContent =
+            "Quantity: " + item.quantity + " " + item.unit +
+            " | Location: " + item.location +
+            " | Deadline: " + item.deadline;
+
+        const status = document.createElement("p");
+        status.textContent = "Status: " + item.status;
+
+        card.append(title, details, status);
+
+        if (!accepted) {
+            const button = document.createElement("button");
+            button.className = "btn";
+            button.textContent = "Accept Food";
+
+            button.disabled = !currentNgo?.verified;
+
+            button.onclick = () => ngoDonationAction(
+                item.id, "accept", button
+            );
+
+            card.append(button);
+        } else {
+            const donor = document.createElement("p");
+            donor.textContent =
+                "Donor: " + item.donorName +
+                " | Contact: " + item.donorPhone;
+
+            card.append(donor);
+
+            if (item.status === "ACCEPTED") {
+                const button = document.createElement("button");
+                button.className = "btn";
+                button.textContent = "Complete Pickup";
+
+                button.onclick = () => ngoDonationAction(
+                    item.id, "complete", button
+                );
+
+                card.append(button);
+            }
+        }
+
+        return card;
+    }
+
+    async function ngoDonationAction(id, action, button) {
+        const message = action === "accept"
+            ? "Accept this food donation?"
+            : "Confirm that the food has been collected?";
+
+        if (!confirm(message)) return;
+
+        button.disabled = true;
+
+        try {
+            const result = await apiRequest(
+                "/api/ngo/donations/" +
+                encodeURIComponent(id) + "/" + action,
+                { method: "POST" }
+            );
+
+            alert(result.message);
+            await openNgoDashboard();
+
+        } catch (error) {
+            alert(error.message);
+            button.disabled = false;
+            await openNgoDashboard();
+        }
+    }
+
     async function openNgoDashboard() {
         try {
             currentNgo = await apiRequest("/api/ngo/me");
+            currentDonor = null;
+
+            updateAuthUI();
 
             byId("ngoWelcome").textContent =
                 "Welcome, " + currentNgo.name;
@@ -1367,57 +1453,75 @@
                     ? "NGO Status: Verified"
                     : "NGO Status: Pending Admin Verification";
 
-            const food = await apiRequest("/api/donations/available");
-            const list = byId("ngoFoodList");
-            list.replaceChildren();
+            const availableList = byId("ngoFoodList");
+            const acceptedList = byId("ngoAcceptedList");
 
-            if (!food.length) {
-                list.textContent = "No food donations available.";
+            availableList.replaceChildren();
+            acceptedList.replaceChildren();
+
+            if (currentNgo.verified) {
+                const available = await apiRequest(
+                    "/api/ngo/donations/available"
+                );
+
+                if (!available.length) {
+                    availableList.textContent =
+                        "No food donations available.";
+                }
+
+                available.forEach(item => {
+                    availableList.append(
+                        ngoFoodCard(item, false)
+                    );
+                });
+            } else {
+                availableList.textContent =
+                    "Admin verification is required before viewing and accepting available food.";
             }
 
-            food.forEach(item => {
-                const card = document.createElement("article");
-                card.className = "scheme";
+            const accepted = await apiRequest(
+                "/api/ngo/donations/mine"
+            );
 
-                const heading = document.createElement("h3");
-                heading.textContent = item.food;
+            if (!accepted.length) {
+                acceptedList.textContent =
+                    "No accepted donations yet.";
+            }
 
-                const details = document.createElement("p");
-                details.textContent =
-                    "Quantity: " + item.quantity + " " + item.unit +
-                    " | Location: " + item.location +
-                    " | Deadline: " + item.deadline;
-
-                const status = document.createElement("p");
-                status.textContent = currentNgo.verified
-                    ? "Food available - acceptance workflow pending"
-                    : "Admin verification required";
-
-                card.append(heading, details, status);
-                list.append(card);
+            accepted.forEach(item => {
+                acceptedList.append(
+                    ngoFoodCard(item, true)
+                );
             });
-
-            byId("ngoAcceptedList").textContent =
-                "Donation acceptance will be enabled after verification workflow is configured.";
 
             showPage("ngo-dashboard");
 
         } catch (error) {
-            alert("NGO login required: " + error.message);
-            showPage("login");
+            alert("Could not load NGO Dashboard: " + error.message);
         }
     }
 
     async function initialiseApp() {
         try {
             currentDonor = await apiRequest("/api/auth/me");
+            currentNgo = null;
         } catch {
             currentDonor = null;
+            try {
+                currentNgo = await apiRequest("/api/ngo/me");
+            } catch {
+                currentNgo = null;
+            }
         }
 
         updateAuthUI();
         await loadDonations();
-        showPage("home");
+
+        if (currentNgo) {
+            await openNgoDashboard();
+        } else {
+            showPage("home");
+        }
     }
 
     ["foodSearch", "dashboardSearch", "historySearch"].forEach(id => {
