@@ -234,12 +234,12 @@
 <nav aria-label="Main navigation">
     <button data-page="home" onclick="showPage('home')">Home</button>
     <button data-page="about" onclick="showPage('about')">About</button>
-    <button data-page="donate" onclick="openNewDonation()">Donate Food</button>
+    <button id="nav-donate" data-page="donate" onclick="openNewDonation()">Donate Food</button>
     <button data-page="find" onclick="showPage('find')">Find Food</button>
-    <button data-page="dashboard" onclick="showPage('dashboard')">Dashboard</button>
-    <button data-page="history" onclick="showPage('history')">History</button>
+    <button id="nav-dashboard" data-page="dashboard" onclick="showPage('dashboard')">Dashboard</button>
+    <button id="nav-history" data-page="history" onclick="showPage('history')">History</button>
     <button data-page="chat" onclick="showPage('chat')">Chat</button>
-    <button data-page="ngo-dashboard" onclick="openNgoDashboard()">NGO Dashboard</button>
+    <button id="nav-ngo-dashboard" data-page="ngo-dashboard" onclick="openNgoDashboard()">NGO Dashboard</button>
     <button data-page="schemes" onclick="showPage('schemes')">Food NGOs</button>
     <button data-page="contact" onclick="showPage('contact')">Contact</button>
     <div class="nav-auth" id="guestControls">
@@ -847,7 +847,15 @@
         const signedIn = Boolean(currentDonor || currentNgo || currentAdmin);
         byId("guestControls").hidden = signedIn;
         byId("signedInControls").hidden = !signedIn;
+
+        // Role-based navigation.
+        ["donate", "dashboard", "history"].forEach(page => {
+            byId("nav-" + page).hidden = !currentDonor;
+        });
+
+        byId("nav-ngo-dashboard").hidden = !currentNgo;
         byId("notificationBell").hidden = !currentDonor;
+
 
         if (signedIn) {
             const account = currentDonor || currentNgo || currentAdmin;
