@@ -1715,31 +1715,55 @@
     }
 
 
+
     async function refreshNotificationCount() {
         const bell = byId("notificationBell");
+        const count = byId("notificationCount");
 
         bell.hidden = !currentDonor;
+        count.hidden = true;
 
-        if (!currentDonor) {
-            byId("notificationCount").hidden = true;
-            return;
-        }
+        if (!currentDonor) return;
 
         try {
-            const items = await apiRequest(
-                "/api/notifications/mine"
+            const data = await apiRequest(
+                "/api/notifications/unread-count"
             );
 
-            const count = byId("notificationCount");
+            const unread = Number(data.count) || 0;
 
-            count.textContent = items.length
-                ? "(" + items.length + ")"
-                : "";
-
-            count.hidden = items.length === 0;
+            count.textContent = unread ? "(" + unread + ")" : "";
+            count.hidden = unread === 0;
 
         } catch (error) {
-            console.warn("Could not load notification count.");
+            console.warn("Notification count unavailable.");
+        }
+    }
+
+    async function markNotificationRead(id) {
+        try {
+            await apiRequest(
+                "/api/notifications/" + encodeURIComponent(id) + "/read",
+                { method: "PATCH" }
+            );
+
+            await openNotifications();
+
+        } catch (error) {
+            feedback("notificationsFeedback", error.message);
+        }
+    }
+
+    async function markAllNotificationsRead() {
+        try {
+            await apiRequest("/api/notifications/read-all", {
+                method: "PATCH"
+            });
+
+            await openNotifications();
+
+        } catch (error) {
+            feedback("notificationsFeedback", error.message);
         }
     }
 
@@ -1752,8 +1776,7 @@
         const list = byId("notificationsList");
         list.replaceChildren();
 
-        feedback("notificationsFeedback", "Loading notifications...");
-
+        feedback("notificationsFeedback", "Loading...");
         showPage("notifications");
 
         try {
@@ -1761,12 +1784,24 @@
                 "/api/notifications/mine"
             );
 
+            list.replaceChildren();
             feedback("notificationsFeedback", "");
 
             if (!items.length) {
-                list.textContent =
-                    "No notifications yet. Your donation updates will appear here.";
+                list.textContent = "No notifications yet.";
+                await refreshNotificationCount();
                 return;
+            }
+
+            const unread = items.filter(item => !item.read);
+
+            if (unread.length) {
+                const allButton = document.createElement("button");
+                allButton.className = "btn";
+                allButton.type = "button";
+                allButton.textContent = "Mark All as Read";
+                allButton.onclick = markAllNotificationsRead;
+                list.append(allButton);
             }
 
             for (const item of items) {
@@ -1779,21 +1814,38 @@
                 const message = document.createElement("p");
                 message.textContent = item.message;
 
+                const status = document.createElement("p");
+                status.textContent = item.read
+                    ? "✓ Read"
+                    : "● Unread";
+
                 const date = document.createElement("small");
                 const time = new Date(item.createdAt);
-                date.textContent = isNaN(time.getTime())
+
+                date.textContent = Number.isNaN(time.getTime())
                     ? item.createdAt
                     : time.toLocaleString();
 
-                card.append(title, message, date);
+                card.append(title, message, status, date);
+
+                if (!item.read) {
+                    const button = document.createElement("button");
+                    button.className = "btn outline";
+                    button.type = "button";
+                    button.textContent = "Mark as Read";
+                    button.onclick = () => markNotificationRead(item.id);
+                    card.append(button);
+                }
+
                 list.append(card);
             }
+
+            await refreshNotificationCount();
 
         } catch (error) {
             feedback("notificationsFeedback", error.message);
         }
     }
-
 
     async function refreshNgoNotificationCount() {
         const bell = byId("ngoNotificationBell");
