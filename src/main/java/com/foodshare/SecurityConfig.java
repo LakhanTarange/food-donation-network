@@ -23,7 +23,8 @@ public class SecurityConfig {
     @Bean
     UserDetailsService userDetailsService(
             DonorRepository repository,
-            NgoRepository ngoRepository) {
+            NgoRepository ngoRepository,
+            AdminRepository adminRepository) {
         return email -> {
             String normalisedEmail =
                     email.trim().toLowerCase(Locale.ROOT);
@@ -39,14 +40,23 @@ public class SecurityConfig {
                         .build();
             }
 
-            Ngo ngo = ngoRepository.findByEmail(normalisedEmail)
+            var ngo = ngoRepository.findByEmail(normalisedEmail);
+            if (ngo.isPresent()) {
+                Ngo account = ngo.get();
+                return User.withUsername(account.getEmail())
+                        .password(account.getPasswordHash())
+                        .roles("NGO")
+                        .build();
+            }
+
+            Admin admin = adminRepository.findByEmail(normalisedEmail)
                     .orElseThrow(() ->
                             new UsernameNotFoundException(
                                     "Account not found"));
 
-            return User.withUsername(ngo.getEmail())
-                    .password(ngo.getPasswordHash())
-                    .roles("NGO")
+            return User.withUsername(admin.getEmail())
+                    .password(admin.getPasswordHash())
+                    .roles("ADMIN")
                     .build();
         };
     }
@@ -69,6 +79,7 @@ public class SecurityConfig {
                         "/api/health",
                         "/api/donations/available"
                 ).permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/ngo/me").hasRole("NGO")
                 .requestMatchers("/api/auth/me").hasRole("DONOR")
                 .requestMatchers("/api/donations/**").hasRole("DONOR")
