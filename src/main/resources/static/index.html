@@ -239,10 +239,12 @@
     <button data-page="dashboard" onclick="showPage('dashboard')">Dashboard</button>
     <button data-page="history" onclick="showPage('history')">History</button>
     <button data-page="chat" onclick="showPage('chat')">Chat</button>
+    <button data-page="ngo-dashboard" onclick="openNgoDashboard()">NGO Dashboard</button>
     <button data-page="schemes" onclick="showPage('schemes')">Food NGOs</button>
     <button data-page="contact" onclick="showPage('contact')">Contact</button>
     <div class="nav-auth" id="guestControls">
         <button class="login-button" data-page="login" onclick="showPage('login')">Login</button>
+        <button type="button" onclick="showPage('ngo-register')">NGO Registration</button>
         <button class="register-button" data-page="register" onclick="showPage('register')">Donor Registration</button>
     </div>
     <div class="nav-auth" id="signedInControls" hidden>
@@ -621,6 +623,64 @@
             </div>
         </div>
     </section>
+
+    <section id="ngo-register" class="page">
+        <div class="container narrow">
+            <h2>NGO Registration</h2>
+            <p class="description">
+                Register your NGO to receive food donations.
+                Admin verification is required before accepting food.
+            </p>
+            <form id="ngoRegistrationForm"
+                  onsubmit="registerNgo(event)">
+                <label>NGO Name</label>
+                <input id="ngoName" required maxlength="120">
+
+                <label>Registration Number</label>
+                <input id="ngoNumber" required maxlength="100">
+
+                <label>Contact Person</label>
+                <input id="ngoPerson" required maxlength="80">
+
+                <label>Mobile Number</label>
+                <input id="ngoPhone" required
+                       pattern="[0-9]{10}" maxlength="10">
+
+                <label>Email Address</label>
+                <input id="ngoEmail" type="email" required>
+
+                <label>NGO Address</label>
+                <textarea id="ngoAddress" required
+                          maxlength="300"></textarea>
+
+                <label>Password</label>
+                <input id="ngoPassword" type="password"
+                       minlength="8" maxlength="64" required>
+
+                <label>Confirm Password</label>
+                <input id="ngoConfirmPassword" type="password"
+                       minlength="8" maxlength="64" required>
+
+                <button class="btn" type="submit">
+                    Register NGO
+                </button>
+            </form>
+            <p id="ngoRegisterFeedback" class="feedback"></p>
+        </div>
+    </section>
+
+    <section id="ngo-dashboard" class="page">
+        <div class="container">
+            <h2>NGO Dashboard</h2>
+            <p id="ngoWelcome"></p>
+            <p id="ngoVerification"></p>
+            <h3>Available Food Donations</h3>
+            <div id="ngoFoodList" class="food-grid"></div>
+            <h3>My Accepted Donations</h3>
+            <div id="ngoAcceptedList"></div>
+        </div>
+    </section>
+
 </main>
 <footer>
     <p>© 2026 FoodShareConnect | Share Food, Spread Happiness</p>
@@ -891,7 +951,11 @@
             byId("dashboardSearch").value = "";
             byId("dashboardFilter").value = "";
             await loadDonations();
-            showPage("dashboard");
+            if (isNgo) {
+                await openNgoDashboard();
+            } else {
+                showPage("dashboard");
+            }
         } catch (error) {
             feedback("donationFeedback", error.message || "Could not save this donation.");
         }
@@ -1154,9 +1218,14 @@
                 throw new Error(result.message || "Invalid email or password.");
             }
 
-            currentDonor = await apiRequest("/api/auth/me");
-            if (!currentDonor || !currentDonor.name) {
-                throw new Error("Login succeeded, but donor details could not be loaded.");
+            let isNgo = false;
+            try {
+                currentDonor = await apiRequest("/api/auth/me");
+                currentNgo = null;
+            } catch {
+                currentDonor = null;
+                currentNgo = await apiRequest("/api/ngo/me");
+                isNgo = true;
             }
 
             event.target.reset();
@@ -1202,6 +1271,96 @@
 
         feedback("contactFeedback",
             "Enquiry preview completed. A contact service is needed to receive enquiries.");
+    }
+
+
+    let currentNgo = null;
+
+    async function registerNgo(event) {
+        event.preventDefault();
+
+        const password = byId("ngoPassword").value;
+
+        if (password !== byId("ngoConfirmPassword").value) {
+            feedback("ngoRegisterFeedback", "Passwords do not match.");
+            return;
+        }
+
+        const payload = {
+            name: byId("ngoName").value.trim(),
+            registrationNumber: byId("ngoNumber").value.trim(),
+            contactPerson: byId("ngoPerson").value.trim(),
+            phone: byId("ngoPhone").value.trim(),
+            email: byId("ngoEmail").value.trim(),
+            address: byId("ngoAddress").value.trim(),
+            password
+        };
+
+        try {
+            const result = await apiRequest("/api/ngo/register", {
+                method: "POST",
+                body: payload
+            });
+
+            feedback("ngoRegisterFeedback", result.message);
+            event.target.reset();
+
+        } catch (error) {
+            feedback("ngoRegisterFeedback", error.message);
+        }
+    }
+
+    async function openNgoDashboard() {
+        try {
+            currentNgo = await apiRequest("/api/ngo/me");
+
+            byId("ngoWelcome").textContent =
+                "Welcome, " + currentNgo.name;
+
+            byId("ngoVerification").textContent =
+                currentNgo.verified
+                    ? "NGO Status: Verified"
+                    : "NGO Status: Pending Admin Verification";
+
+            const food = await apiRequest("/api/donations/available");
+            const list = byId("ngoFoodList");
+            list.replaceChildren();
+
+            if (!food.length) {
+                list.textContent = "No food donations available.";
+            }
+
+            food.forEach(item => {
+                const card = document.createElement("article");
+                card.className = "scheme";
+
+                const heading = document.createElement("h3");
+                heading.textContent = item.food;
+
+                const details = document.createElement("p");
+                details.textContent =
+                    "Quantity: " + item.quantity + " " + item.unit +
+                    " | Location: " + item.location +
+                    " | Deadline: " + item.deadline;
+
+                const status = document.createElement("p");
+                status.textContent = currentNgo.verified
+                    ? "Food available - acceptance workflow pending"
+                    : "Admin verification required";
+
+                card.append(heading, details, status);
+                list.append(card);
+            });
+
+            byId("ngoAcceptedList").textContent =
+                "Donation acceptance will be enabled after verification workflow is configured.";
+
+            showPage("ngo-dashboard");
+
+        } catch (error) {
+            alert("NGO login required: " + error.message);
+            showPage("login");
+        }
     }
 
     async function initialiseApp() {
