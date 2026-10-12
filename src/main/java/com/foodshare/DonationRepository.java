@@ -12,15 +12,33 @@ public interface DonationRepository extends JpaRepository<Donation, Long> {
 
     List<Donation> findByAcceptedNgoIdOrderByCreatedAtDesc(Long ngoId);
 
+    List<Donation> findByStatusAndDeadlineLessThanEqual(
+        String status, String deadline
+    );
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Donation d SET d.status = 'EXPIRED', " +
+           "d.updatedAt = :now " +
+           "WHERE d.id = :id AND d.status = 'AVAILABLE' " +
+           "AND d.deadline <= :nowLocal")
+    int expireDonation(
+        @Param("id") Long id,
+        @Param("now") String now,
+        @Param("nowLocal") String nowLocal
+    );
+
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Donation d SET d.status = 'ACCEPTED', " +
            "d.acceptedNgoId = :ngoId, d.updatedAt = :now " +
            "WHERE d.id = :id AND d.status = 'AVAILABLE' " +
-           "AND d.acceptedNgoId IS NULL")
+           "AND d.acceptedNgoId IS NULL " +
+           "AND d.deadline > :nowLocal")
     int acceptAvailableDonation(
         @Param("id") Long id,
         @Param("ngoId") Long ngoId,
-        @Param("now") String now
+        @Param("now") String now,
+        @Param("nowLocal") String nowLocal
     );
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)

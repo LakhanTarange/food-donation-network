@@ -116,7 +116,10 @@ public class NgoDonationController {
         Ngo ngo = verifiedNgo(principal);
 
         int updated = donations.acceptAvailableDonation(
-            id, ngo.getId(), Instant.now().toString()
+            id,
+            ngo.getId(),
+            Instant.now().toString(),
+            FoodExpiryService.currentDeadline()
         );
 
         if (updated == 0) {
