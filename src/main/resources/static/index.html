@@ -255,7 +255,7 @@
             <div class="profile-menu" id="profileMenu" hidden>
                 <strong id="profileName"></strong>
                 <span id="profileEmail"></span>
-                <button class="btn outline" type="button" onclick="currentNgo ? openNgoDashboard() : showPage('dashboard')">My Dashboard</button>
+                <button class="btn outline" type="button" onclick="currentAdmin ? openAdminDashboard() : currentNgo ? openNgoDashboard() : showPage('dashboard')">My Dashboard</button>
                 <button class="btn danger" type="button" onclick="logoutUser()">Logout</button>
             </div>
         </div>
@@ -726,6 +726,27 @@
         </div>
     </section>
 
+
+    <section id="admin-dashboard" class="page">
+        <div class="container">
+            <h2>Admin Dashboard</h2>
+            <p class="description">
+                Manage registered NGOs and food donation statistics.
+            </p>
+
+            <div id="adminStats" class="stats"></div>
+
+            <h3>NGO Verification Requests</h3>
+            <p class="description">
+                Review NGO details before granting approval.
+                Registration information alone does not establish authenticity.
+            </p>
+
+            <div id="adminNgoList" class="scheme-grid"></div>
+            <p id="adminFeedback" role="status"></p>
+        </div>
+    </section>
+
 </main>
 <footer>
     <p>© 2026 FoodShareConnect | Share Food, Spread Happiness</p>
@@ -794,12 +815,12 @@
     }
 
     function updateAuthUI() {
-        const signedIn = Boolean(currentDonor || currentNgo);
+        const signedIn = Boolean(currentDonor || currentNgo || currentAdmin);
         byId("guestControls").hidden = signedIn;
         byId("signedInControls").hidden = !signedIn;
 
         if (signedIn) {
-            const account = currentDonor || currentNgo;
+            const account = currentDonor || currentNgo || currentAdmin;
             const name = account.name || account.email || "User";
             const initials = name.trim().split(/\s+/).slice(0, 2)
                 .map(part => part[0]).join("").toUpperCase();
@@ -813,7 +834,7 @@
     }
 
     function toggleProfileMenu() {
-        if (!currentDonor && !currentNgo) return;
+        if (!currentDonor && !currentNgo && !currentAdmin) return;
 
         const menu = byId("profileMenu");
         menu.hidden = !menu.hidden;
@@ -825,6 +846,7 @@
             await apiRequest("/api/auth/logout", {method:"POST"});
             currentDonor = null;
             currentNgo = null;
+            currentAdmin = null;
             donations = [];
             await loadDonations();
             updateAuthUI();
@@ -1265,14 +1287,18 @@
                 throw new Error(result.message || "Invalid email or password.");
             }
 
-            let isNgo = false;
+            currentDonor = null;
+            currentNgo = null;
+            currentAdmin = null;
+
             try {
                 currentDonor = await apiRequest("/api/auth/me");
-                currentNgo = null;
             } catch {
-                currentDonor = null;
-                currentNgo = await apiRequest("/api/ngo/me");
-                isNgo = true;
+                try {
+                    currentNgo = await apiRequest("/api/ngo/me");
+                } catch {
+                    currentAdmin = await apiRequest("/api/admin/me");
+                }
             }
 
             event.target.reset();
@@ -1281,7 +1307,13 @@
 
             byId("dashboardSearch").value = "";
             byId("dashboardFilter").value = "";
-            showPage("dashboard");
+            if (currentAdmin) {
+                await openAdminDashboard();
+            } else if (currentNgo) {
+                await openNgoDashboard();
+            } else {
+                showPage("dashboard");
+            }
         } catch (error) {
             feedback("loginFeedback",
                 error.message || "Could not connect to the server.");
@@ -1501,23 +1533,140 @@
         }
     }
 
+
+    let currentAdmin = null;
+
+    function adminText(tag, value) {
+        const element = document.createElement(tag);
+        element.textContent = value;
+        return element;
+    }
+
+    async function openAdminDashboard() {
+        try {
+            currentAdmin = await apiRequest("/api/admin/me");
+            currentDonor = null;
+            currentNgo = null;
+            updateAuthUI();
+
+            const [stats, ngos] = await Promise.all([
+                apiRequest("/api/admin/stats"),
+                apiRequest("/api/admin/ngos")
+            ]);
+
+            const statsContainer = byId("adminStats");
+            statsContainer.replaceChildren();
+
+            const metrics = [
+                ["Total Donors", stats.totalDonors],
+                ["Registered NGOs", stats.totalNgos],
+                ["Food Donations", stats.totalDonations]
+            ];
+
+            for (const [label, value] of metrics) {
+                const card = document.createElement("article");
+                card.className = "scheme";
+                card.append(
+                    adminText("h3", String(value)),
+                    adminText("p", label)
+                );
+                statsContainer.append(card);
+            }
+
+            const ngoList = byId("adminNgoList");
+            ngoList.replaceChildren();
+
+            if (!ngos.length) {
+                ngoList.textContent = "No NGOs registered yet.";
+            }
+
+            for (const ngo of ngos) {
+                const card = document.createElement("article");
+                card.className = "scheme";
+
+                card.append(
+                    adminText("h3", ngo.name),
+                    adminText("p", "Email: " + ngo.email),
+                    adminText("p", "Contact: " + ngo.contactPerson),
+                    adminText("p", "Phone: " + ngo.phone),
+                    adminText("p", "Registration No: " + ngo.registrationNumber),
+                    adminText("p", "Address: " + ngo.address),
+                    adminText("p", "Status: " +
+                        (ngo.verified ? "Verified" : "Pending / Unverified"))
+                );
+
+                const button = document.createElement("button");
+                button.className = "btn";
+                button.textContent = ngo.verified
+                    ? "Revoke Verification"
+                    : "Approve NGO";
+
+                button.onclick = () => changeNgoVerification(
+                    ngo.id, !ngo.verified, ngo.name, button
+                );
+
+                card.append(button);
+                ngoList.append(card);
+            }
+
+            showPage("admin-dashboard");
+
+        } catch (error) {
+            feedback("adminFeedback", error.message);
+            showPage("login");
+        }
+    }
+
+    async function changeNgoVerification(id, verified, name, button) {
+        const action = verified ? "Approve" : "Revoke verification for";
+
+        if (!confirm(action + " NGO: " + name + "?")) return;
+
+        button.disabled = true;
+
+        try {
+            await apiRequest(
+                "/api/admin/ngos/" + encodeURIComponent(id) +
+                "/verification",
+                {
+                    method: "PATCH",
+                    body: { verified }
+                }
+            );
+
+            await openAdminDashboard();
+
+        } catch (error) {
+            feedback("adminFeedback", error.message);
+            button.disabled = false;
+        }
+    }
+
     async function initialiseApp() {
+        currentDonor = null;
+        currentNgo = null;
+        currentAdmin = null;
+
         try {
             currentDonor = await apiRequest("/api/auth/me");
-            currentNgo = null;
         } catch {
-            currentDonor = null;
             try {
                 currentNgo = await apiRequest("/api/ngo/me");
             } catch {
-                currentNgo = null;
+                try {
+                    currentAdmin = await apiRequest("/api/admin/me");
+                } catch {
+                    currentAdmin = null;
+                }
             }
         }
 
         updateAuthUI();
         await loadDonations();
 
-        if (currentNgo) {
+        if (currentAdmin) {
+            await openAdminDashboard();
+        } else if (currentNgo) {
             await openNgoDashboard();
         } else {
             showPage("home");
