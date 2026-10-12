@@ -247,6 +247,13 @@
         <button class="register-button" data-page="register-choice"
                 onclick="showPage('register-choice')">Register</button>
     </div>
+    <button id="notificationBell" type="button"
+            aria-label="My Notifications"
+            data-page="notifications"
+            onclick="openNotifications()" hidden>
+        🔔 Notifications
+        <span id="notificationCount" hidden></span>
+    </button>
     <div class="nav-auth" id="signedInControls" hidden>
         <div class="profile-wrap">
             <button class="profile-avatar" id="profileAvatar" type="button"
@@ -747,6 +754,28 @@
         </div>
     </section>
 
+
+    <section id="notifications" class="page">
+        <div class="container">
+            <div class="heading-row">
+                <div>
+                    <h2>My Notifications</h2>
+                    <p class="description">
+                        Track your food donation updates.
+                    </p>
+                </div>
+                <button class="btn outline" type="button"
+                        onclick="openNotifications()">
+                    Refresh
+                </button>
+            </div>
+            <div id="notificationsList"
+                 class="scheme-grid"></div>
+            <p id="notificationsFeedback"
+               role="status"></p>
+        </div>
+    </section>
+
 </main>
 <footer>
     <p>© 2026 FoodShareConnect | Share Food, Spread Happiness</p>
@@ -818,6 +847,7 @@
         const signedIn = Boolean(currentDonor || currentNgo || currentAdmin);
         byId("guestControls").hidden = signedIn;
         byId("signedInControls").hidden = !signedIn;
+        byId("notificationBell").hidden = !currentDonor;
 
         if (signedIn) {
             const account = currentDonor || currentNgo || currentAdmin;
@@ -1642,6 +1672,86 @@
         }
     }
 
+
+    async function refreshNotificationCount() {
+        const bell = byId("notificationBell");
+
+        bell.hidden = !currentDonor;
+
+        if (!currentDonor) {
+            byId("notificationCount").hidden = true;
+            return;
+        }
+
+        try {
+            const items = await apiRequest(
+                "/api/notifications/mine"
+            );
+
+            const count = byId("notificationCount");
+
+            count.textContent = items.length
+                ? "(" + items.length + ")"
+                : "";
+
+            count.hidden = items.length === 0;
+
+        } catch (error) {
+            console.warn("Could not load notification count.");
+        }
+    }
+
+    async function openNotifications() {
+        if (!currentDonor) {
+            showPage("login");
+            return;
+        }
+
+        const list = byId("notificationsList");
+        list.replaceChildren();
+
+        feedback("notificationsFeedback", "Loading notifications...");
+
+        showPage("notifications");
+
+        try {
+            const items = await apiRequest(
+                "/api/notifications/mine"
+            );
+
+            feedback("notificationsFeedback", "");
+
+            if (!items.length) {
+                list.textContent =
+                    "No notifications yet. Your donation updates will appear here.";
+                return;
+            }
+
+            for (const item of items) {
+                const card = document.createElement("article");
+                card.className = "scheme";
+
+                const title = document.createElement("h3");
+                title.textContent = item.title;
+
+                const message = document.createElement("p");
+                message.textContent = item.message;
+
+                const date = document.createElement("small");
+                const time = new Date(item.createdAt);
+                date.textContent = isNaN(time.getTime())
+                    ? item.createdAt
+                    : time.toLocaleString();
+
+                card.append(title, message, date);
+                list.append(card);
+            }
+
+        } catch (error) {
+            feedback("notificationsFeedback", error.message);
+        }
+    }
+
     async function initialiseApp() {
         currentDonor = null;
         currentNgo = null;
@@ -1663,6 +1773,7 @@
 
         updateAuthUI();
         await loadDonations();
+        await refreshNotificationCount();
 
         if (currentAdmin) {
             await openAdminDashboard();
@@ -1689,6 +1800,10 @@
 
     setInterval(() => {
         if (currentDonor) loadDonations();
+    }, 30000);
+
+    setInterval(() => {
+        if (currentDonor) refreshNotificationCount();
     }, 30000);
 
     initialiseApp();
