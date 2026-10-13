@@ -390,4 +390,62 @@ class FoodShareSecurityFlowTest {
         }
     }
 
+
+    @Test
+    void revokedNgoCannotAccessDonorDetails()
+            throws Exception {
+
+        createDonor();
+
+        Ngo ngo = createNgo(
+            ngoEmail,
+            "TEST-NGO-REVOKED",
+            true
+        );
+
+        long donationId = publishDonation();
+
+        mvc.perform(
+                post("/api/ngo/donations/{id}/accept", donationId)
+                    .with(user(ngoEmail).roles("NGO"))
+                    .with(csrf())
+            )
+            .andExpect(status().isOk());
+
+        // Verified NGO can access its accepted donation.
+        mvc.perform(
+                get("/api/ngo/donations/mine")
+                    .with(user(ngoEmail).roles("NGO"))
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].donorPhone")
+                .value("9876543210"));
+
+        // Admin revokes verification.
+        ngo.setVerified(false);
+        ngos.saveAndFlush(ngo);
+
+        // Private donor details are now blocked.
+        mvc.perform(
+                get("/api/ngo/donations/mine")
+                    .with(user(ngoEmail).roles("NGO"))
+            )
+            .andExpect(status().isForbidden());
+
+        // Revoked NGO cannot see available donations.
+        mvc.perform(
+                get("/api/ngo/donations/available")
+                    .with(user(ngoEmail).roles("NGO"))
+            )
+            .andExpect(status().isForbidden());
+
+        // Revoked NGO cannot complete pickup.
+        mvc.perform(
+                post("/api/ngo/donations/{id}/complete", donationId)
+                    .with(user(ngoEmail).roles("NGO"))
+                    .with(csrf())
+            )
+            .andExpect(status().isForbidden());
+    }
+
 }

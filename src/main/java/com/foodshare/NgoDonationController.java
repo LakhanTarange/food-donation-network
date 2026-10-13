@@ -99,7 +99,7 @@ public class NgoDonationController {
 
     @GetMapping("/mine")
     public List<FoodView> mine(Principal principal) {
-        Ngo ngo = currentNgo(principal);
+        Ngo ngo = verifiedNgo(principal);
 
         return donations
             .findByAcceptedNgoIdOrderByCreatedAtDesc(ngo.getId())
