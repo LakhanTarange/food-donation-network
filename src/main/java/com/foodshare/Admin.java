@@ -24,4 +24,9 @@ public class Admin {
 
     public String getEmail() { return email; }
     public String getPasswordHash() { return passwordHash; }
+
+    public void setPasswordHash(String hash) {
+        this.passwordHash = hash;
+    }
+
 }

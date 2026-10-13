@@ -19,6 +19,13 @@ public class AdminBootstrap implements CommandLineRunner {
     @Value("${foodshare.admin.password:}")
     private String password;
 
+    @Value("${ADMIN_DEMO_MODE:false}")
+    private boolean demoMode;
+
+    @Value("${ADMIN_RESET_PASSWORD_ONCE:false}")
+    private boolean resetPasswordOnce;
+
+
     public AdminBootstrap(
         AdminRepository admins,
         DonorRepository donors,
@@ -31,28 +38,74 @@ public class AdminBootstrap implements CommandLineRunner {
         this.encoder = encoder;
     }
 
+
     @Override
     public void run(String... args) {
-        if (email.isBlank() || password.isBlank()) return;
 
-        String normalized = email.trim().toLowerCase(Locale.ROOT);
+        if (email == null || email.isBlank() ||
+            password == null || password.isBlank()) {
+            return;
+        }
 
-        if (admins.findByEmail(normalized).isPresent()) return;
+        String normalized =
+            email.trim().toLowerCase(Locale.ROOT);
+
+        boolean adminDemo =
+            demoMode && "admin".equals(normalized);
+
+        int minLength = adminDemo ? 10 : 12;
+
+        int bytes = password.getBytes(
+            java.nio.charset.StandardCharsets.UTF_8
+        ).length;
+
+        if (password.length() < minLength || bytes > 72) {
+            throw new IllegalStateException(
+                "Invalid admin password length"
+            );
+        }
+
+        var existing = admins.findByEmail(normalized);
+
+        if (existing.isPresent()) {
+
+            if (resetPasswordOnce) {
+
+                if (!adminDemo) {
+                    throw new IllegalStateException(
+                        "Password reset is limited to demo Admin"
+                    );
+                }
+
+                Admin admin = existing.get();
+
+                admin.setPasswordHash(
+                    encoder.encode(password)
+                );
+
+                admins.save(admin);
+
+                System.out.println(
+                    "DEMO ADMIN PASSWORD RESET SUCCESSFUL"
+                );
+            }
+
+            return;
+        }
 
         if (donors.existsByEmail(normalized)
                 || ngos.existsByEmail(normalized)) {
             throw new IllegalStateException(
-                "Admin email already belongs to another account");
+                "Admin ID already used by another account"
+            );
         }
 
-        if (password.length() < 12 ||
-            password.getBytes(
-                java.nio.charset.StandardCharsets.UTF_8
-            ).length > 72) {
-            throw new IllegalStateException(
-                "Admin password must contain 12-72 UTF-8 bytes");
-        }
+        admins.save(
+            new Admin(normalized, encoder.encode(password))
+        );
 
-        admins.save(new Admin(normalized, encoder.encode(password)));
+        System.out.println(
+            "DEMO ADMIN ACCOUNT CREATED SUCCESSFULLY"
+        );
     }
 }
