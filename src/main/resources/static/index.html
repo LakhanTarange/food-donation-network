@@ -402,7 +402,8 @@
                     </div>
                     <div class="full">
                         <label for="foodNotes">Preparation, Storage and Allergens</label>
-                        <textarea id="foodNotes" rows="3" required maxlength="500"></textarea>
+                        <textarea id="foodNotes" rows="4" required maxlength="500"
+                                  placeholder="Prepared: date and time&#10;Storage: conditions and temperature&#10;Allergens: list known allergens or write None known"></textarea>
                     </div>
                 </div>
                 <div class="actions">
@@ -1637,6 +1638,14 @@
                 " | Contact: " + item.donorPhone;
 
             card.append(donor);
+
+            card.append(
+                textElement(
+                    "p",
+                    "Preparation, Storage and Allergens: " +
+                    (item.notes || "Not provided")
+                )
+            );
 
             if (item.status === "ACCEPTED") {
                 const button = document.createElement("button");

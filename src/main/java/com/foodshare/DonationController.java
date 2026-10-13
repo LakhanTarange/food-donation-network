@@ -2,6 +2,11 @@ package com.foodshare;
 
 import java.security.Principal;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -13,6 +18,14 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/api/donations")
 public class DonationController {
+
+    private static final DateTimeFormatter PICKUP_FORMAT =
+        DateTimeFormatter
+            .ofPattern("uuuu-MM-dd'T'HH:mm")
+            .withResolverStyle(ResolverStyle.STRICT);
+
+    private static final ZoneId PICKUP_ZONE =
+        ZoneId.of("Asia/Kolkata");
     private final DonationRepository donations;
     private final DonorRepository donors;
     private final NotificationService notifications;
@@ -214,6 +227,27 @@ public class DonationController {
                 || blank(request.notes()) || request.notes().length() > 1000) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Please check the donation details");
+        }
+
+        LocalDateTime pickupDeadline;
+
+        try {
+            pickupDeadline = LocalDateTime.parse(
+                request.deadline(), PICKUP_FORMAT
+            );
+        } catch (DateTimeParseException ex) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Invalid pickup deadline format"
+            );
+        }
+
+        if (!pickupDeadline.isAfter(
+                LocalDateTime.now(PICKUP_ZONE))) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Pickup deadline must be in the future"
+            );
         }
     }
 

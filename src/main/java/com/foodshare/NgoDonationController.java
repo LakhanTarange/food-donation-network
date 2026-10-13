@@ -58,7 +58,8 @@ public class NgoDonationController {
         String deadline,
         String status,
         String donorName,
-        String donorPhone
+        String donorPhone,
+        String notes
     ) {}
 
     private FoodView view(Donation d) {
@@ -71,7 +72,8 @@ public class NgoDonationController {
             d.getDeadline(),
             d.getStatus(),
             d.getName(),
-            d.getPhone()
+            d.getPhone(),
+            d.getNotes()
         );
     }
 

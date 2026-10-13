@@ -338,7 +338,56 @@ class FoodShareSecurityFlowTest {
             .andExpect(jsonPath("$[0].location")
                 .value("Private Test Pickup Address"))
             .andExpect(jsonPath("$[0].donorPhone")
-                .value("9876543210"));
+                .value("9876543210"))
+            .andExpect(jsonPath("$[0].notes")
+                .value("Freshly prepared; chilled; contains dairy"));
+    }
+
+
+    @Test
+    void rejectsInvalidPickupDeadlines()
+            throws Exception {
+
+        createDonor();
+
+        String pastDeadline = LocalDateTime
+            .now(ZoneId.of("Asia/Kolkata"))
+            .minusDays(1)
+            .format(DateTimeFormatter.ofPattern(
+                "yyyy-MM-dd'T'HH:mm"
+            ));
+
+        String[] invalidDeadlines = {
+            pastDeadline,
+            "2026-02-30T12:00",
+            "not-a-date"
+        };
+
+        for (String deadline : invalidDeadlines) {
+
+            String body = """
+                {
+                  "name":"Test Donor",
+                  "phone":"9876543210",
+                  "food":"Test Food",
+                  "type":"Vegetarian",
+                  "unit":"Packets",
+                  "quantity":10,
+                  "location":"Test Address",
+                  "deadline":"%s",
+                  "notes":"Prepared today; refrigerated; contains milk"
+                }
+                """.formatted(deadline);
+
+            mvc.perform(
+                    post("/api/donations")
+                        .with(user(donorEmail).roles("DONOR"))
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content(body)
+                )
+                .andExpect(status().isBadRequest());
+        }
     }
 
 }
