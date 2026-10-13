@@ -418,7 +418,7 @@
         <div class="container">
             <h2>Find Available Food</h2>
             <p class="description">Browse available food donations shared by the community.
-                Contact the donor before collecting.</p>
+                Verified NGOs can arrange collection through their dashboard.</p>
             <div class="filters">
                 <input id="foodSearch" type="search" aria-label="Search food or location"
                        placeholder="Search food or location…">
@@ -1180,11 +1180,29 @@
             textElement("span", label, "badge " + status.toLowerCase()),
             textElement("h3", item.food),
             textElement("p", `${item.type} · ${item.quantity} ${item.unit}`),
-            textElement("p", "Donor: " + item.name),
-            textElement("p", "Pickup: " + item.location),
-            textElement("p", "Collect before: " + new Date(item.deadline).toLocaleString()),
-            textElement("p", "Preparation, Storage and Allergens: " + (item.notes || "Not provided"))
+            textElement("p", "Collect before: " + new Date(item.deadline).toLocaleString())
         );
+
+        if (mode === "find") {
+            card.append(
+                textElement(
+                    "p",
+                    "Donor contact and pickup details are private. " +
+                    "Verified NGOs can view pickup information " +
+                    "through their NGO Dashboard."
+                )
+            );
+        } else {
+            card.append(
+                textElement("p", "Donor: " + item.name),
+                textElement("p", "Pickup: " + item.location),
+                textElement(
+                    "p",
+                    "Preparation, Storage and Allergens: " +
+                    (item.notes || "Not provided")
+                )
+            );
+        }
 
         if (mode === "dashboard" || mode === "history") {
 
@@ -1264,11 +1282,7 @@
             card.append(textElement("p", label + " on: " + new Date(item.closedAt).toLocaleString()));
         }
 
-        if (status === "AVAILABLE") {
-            const link = textElement("a", "Call donor: " + item.phone);
-            link.href = "tel:" + item.phone;
-            card.append(link);
-        }
+
 
         if (mode === "dashboard") {
             const actions = document.createElement("div");
@@ -1288,7 +1302,11 @@
     }
 
     function matchesSearch(item, query) {
-        return `${item.food} ${item.name} ${item.location}`.toLowerCase().includes(query);
+        return [item.food, item.name, item.location]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase()
+            .includes(query);
     }
 
     function renderList(listId, emptyId, items, mode) {

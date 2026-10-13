@@ -77,10 +77,32 @@ public class DonationController {
                 .stream().map(d -> view(d, true)).toList();
     }
 
+    public record PublicDonationView(
+        String id,
+        String food,
+        String type,
+        String unit,
+        Integer quantity,
+        String deadline,
+        String status
+    ) {}
+
     @GetMapping("/available")
-    public List<DonationView> available() {
-        return donations.findByStatusOrderByCreatedAtDesc("AVAILABLE")
-                .stream().map(this::view).toList();
+    public List<PublicDonationView> available() {
+
+        return donations
+            .findByStatusOrderByCreatedAtDesc("AVAILABLE")
+            .stream()
+            .map(d -> new PublicDonationView(
+                String.valueOf(d.getId()),
+                d.getFood(),
+                d.getType(),
+                d.getUnit(),
+                d.getQuantity(),
+                d.getDeadline(),
+                d.getStatus()
+            ))
+            .toList();
     }
 
     @PostMapping
