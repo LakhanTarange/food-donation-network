@@ -430,6 +430,7 @@
                 <select id="dashboardFilter" aria-label="Dashboard status">
                     <option value="">All statuses</option>
                     <option value="AVAILABLE">Available</option>
+                    <option value="ACCEPTED">Accepted</option>
                     <option value="COLLECTED">Collected</option>
                     <option value="EXPIRED">Expired</option>
                     <option value="CANCELLED">Cancelled</option>
@@ -453,6 +454,7 @@
                        placeholder="Search donation history…">
                 <select id="historyFilter" aria-label="History status">
                     <option value="">All history</option>
+                    <option value="ACCEPTED">Accepted</option>
                     <option value="COLLECTED">Collected</option>
                     <option value="EXPIRED">Expired</option>
                     <option value="CANCELLED">Cancelled</option>
@@ -834,7 +836,7 @@
     }
 
     function statusOf(item) {
-        if (["AVAILABLE", "COLLECTED", "EXPIRED", "CANCELLED"].includes(item.status)) {
+        if (["AVAILABLE", "ACCEPTED", "COLLECTED", "EXPIRED", "CANCELLED"].includes(item.status)) {
             return item.status;
         }
         return new Date(item.deadline).getTime() > Date.now() ? "AVAILABLE" : "EXPIRED";
@@ -1162,6 +1164,18 @@
             textElement("p", "Collect before: " + new Date(item.deadline).toLocaleString()),
             textElement("p", "Preparation, Storage and Allergens: " + (item.notes || "Not provided"))
         );
+
+        if ((mode === "dashboard" || mode === "history") &&
+            (status === "ACCEPTED" || status === "COLLECTED")) {
+
+            card.append(
+                textElement(
+                    "p",
+                    "Accepted by NGO: " +
+                    (item.acceptedNgoName || "Details not available")
+                )
+            );
+        }
 
         if (item.closedAt && Number.isFinite(new Date(item.closedAt).getTime())) {
             card.append(textElement("p", label + " on: " + new Date(item.closedAt).toLocaleString()));

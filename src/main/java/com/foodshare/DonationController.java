@@ -18,19 +18,22 @@ public class DonationController {
     private final NotificationService notifications;
     private final DonorNotificationService donorNotifications;
     private final NgoNotificationService ngoNotifications;
+    private final NgoRepository ngos;
 
     public DonationController(
             DonationRepository donations,
             DonorRepository donors,
             NotificationService notifications,
             DonorNotificationService donorNotifications,
-            NgoNotificationService ngoNotifications
+            NgoNotificationService ngoNotifications,
+            NgoRepository ngos
     ) {
         this.donations = donations;
         this.donors = donors;
         this.notifications = notifications;
         this.donorNotifications = donorNotifications;
         this.ngoNotifications = ngoNotifications;
+        this.ngos = ngos;
     }
 
     public record DonationRequest(
@@ -60,14 +63,15 @@ public class DonationController {
             String notes,
             String status,
             String createdAt,
-            String updatedAt
+            String updatedAt,
+            String acceptedNgoName
     ) {}
 
     @GetMapping("/mine")
     public List<DonationView> mine(Principal principal) {
         Donor donor = currentDonor(principal);
         return donations.findByDonorIdOrderByCreatedAtDesc(donor.getId())
-                .stream().map(this::view).toList();
+                .stream().map(d -> view(d, true)).toList();
     }
 
     @GetMapping("/available")
@@ -206,6 +210,25 @@ public class DonationController {
     }
 
     private DonationView view(Donation item) {
+        return view(item, false);
+    }
+
+    private DonationView view(
+            Donation item, boolean includeNgoName) {
+
+        String acceptedNgoName = null;
+
+        if (includeNgoName &&
+            item.getAcceptedNgoId() != null &&
+            ("ACCEPTED".equals(item.getStatus()) ||
+             "COLLECTED".equals(item.getStatus()))) {
+
+            acceptedNgoName = ngos
+                .findById(item.getAcceptedNgoId())
+                .map(Ngo::getName)
+                .orElse("NGO account unavailable");
+        }
+
         return new DonationView(
                 String.valueOf(item.getId()),
                 item.getName(),
@@ -219,7 +242,8 @@ public class DonationController {
                 item.getNotes(),
                 item.getStatus(),
                 item.getCreatedAt(),
-                item.getUpdatedAt()
+                item.getUpdatedAt(),
+                acceptedNgoName
         );
     }
 }
