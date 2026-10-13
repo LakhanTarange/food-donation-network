@@ -221,6 +221,29 @@
             .chat-form {flex-wrap:wrap}
             .chat-form input {flex-basis:100%}
         }
+
+
+    .pickup-tracker {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 14px 0;
+    }
+
+    .pickup-step {
+        background: #eef0f2;
+        color: #475569;
+        border-radius: 20px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .pickup-step.done {
+        background: #dcfce7;
+        color: #166534;
+    }
+
     </style>
 </head>
 <body>
@@ -1105,10 +1128,8 @@
         if (!item) return;
 
         const current = statusOf(item);
-        const allowed = nextStatus === "COLLECTED"
-            ? current === "AVAILABLE"
-            : nextStatus === "CANCELLED" &&
-              ["AVAILABLE", "EXPIRED"].includes(current);
+        const allowed = nextStatus === "CANCELLED" &&
+            ["AVAILABLE", "EXPIRED"].includes(current);
 
         if (!allowed) {
             feedback("managementFeedback", "This donation's status has changed.");
@@ -1165,16 +1186,78 @@
             textElement("p", "Preparation, Storage and Allergens: " + (item.notes || "Not provided"))
         );
 
-        if ((mode === "dashboard" || mode === "history") &&
-            (status === "ACCEPTED" || status === "COLLECTED")) {
+        if (mode === "dashboard" || mode === "history") {
 
-            card.append(
-                textElement(
-                    "p",
-                    "Accepted by NGO: " +
-                    (item.acceptedNgoName || "Details not available")
-                )
-            );
+            if (["AVAILABLE", "ACCEPTED", "COLLECTED"].includes(status)) {
+
+                const tracker = document.createElement("div");
+                tracker.className = "pickup-tracker";
+
+                const stages = [
+                    "Published",
+                    "NGO Accepted",
+                    "Pickup Completed"
+                ];
+
+                const progress = status === "COLLECTED"
+                    ? 3 : status === "ACCEPTED" ? 2 : 1;
+
+                stages.forEach((stage, index) => {
+                    const step = document.createElement("span");
+                    const done = index < progress;
+
+                    step.className = "pickup-step" +
+                        (done ? " done" : "");
+
+                    step.textContent =
+                        (done ? "✓ " : "○ ") + stage;
+
+                    tracker.append(step);
+                });
+
+                card.append(tracker);
+            }
+
+            if (status === "ACCEPTED" || status === "COLLECTED") {
+
+                card.append(
+                    textElement(
+                        "p",
+                        "Accepted by NGO: " +
+                        (item.acceptedNgoName || "Details not available")
+                    )
+                );
+
+                if (item.acceptedNgoContactPerson) {
+                    card.append(
+                        textElement(
+                            "p",
+                            "Contact Person: " +
+                            item.acceptedNgoContactPerson
+                        )
+                    );
+                }
+
+                if (item.acceptedNgoPhone) {
+                    const phone = textElement(
+                        "a",
+                        "Call NGO: " + item.acceptedNgoPhone
+                    );
+
+                    phone.href = "tel:" + item.acceptedNgoPhone;
+                    card.append(phone);
+                }
+
+                if (item.acceptedNgoEmail) {
+                    const email = textElement(
+                        "a",
+                        "Email NGO: " + item.acceptedNgoEmail
+                    );
+
+                    email.href = "mailto:" + item.acceptedNgoEmail;
+                    card.append(email);
+                }
+            }
         }
 
         if (item.closedAt && Number.isFinite(new Date(item.closedAt).getTime())) {
@@ -1197,10 +1280,6 @@
                     actionButton("Cancel Donation", "btn danger",
                         () => changeStatus(item.id, "CANCELLED"))
                 );
-            }
-            if (status === "AVAILABLE") {
-                actions.append(actionButton("Mark Collected", "btn",
-                    () => changeStatus(item.id, "COLLECTED")));
             }
             card.append(actions);
         }

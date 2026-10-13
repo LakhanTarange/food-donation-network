@@ -64,7 +64,10 @@ public class DonationController {
             String status,
             String createdAt,
             String updatedAt,
-            String acceptedNgoName
+            String acceptedNgoName,
+            String acceptedNgoPhone,
+            String acceptedNgoEmail,
+            String acceptedNgoContactPerson
     ) {}
 
     @GetMapping("/mine")
@@ -138,10 +141,9 @@ public class DonationController {
         String next = request.status();
 
         boolean allowed =
-                ("COLLECTED".equals(next) && "AVAILABLE".equals(item.getStatus()))
-                || ("CANCELLED".equals(next)
-                    && ("AVAILABLE".equals(item.getStatus())
-                        || "EXPIRED".equals(item.getStatus())));
+                "CANCELLED".equals(next)
+                && ("AVAILABLE".equals(item.getStatus())
+                    || "EXPIRED".equals(item.getStatus()));
 
         if (!allowed) {
             throw new ResponseStatusException(
@@ -217,16 +219,34 @@ public class DonationController {
             Donation item, boolean includeNgoName) {
 
         String acceptedNgoName = null;
+        String acceptedNgoPhone = null;
+        String acceptedNgoEmail = null;
+        String acceptedNgoContactPerson = null;
 
         if (includeNgoName &&
             item.getAcceptedNgoId() != null &&
             ("ACCEPTED".equals(item.getStatus()) ||
              "COLLECTED".equals(item.getStatus()))) {
 
-            acceptedNgoName = ngos
-                .findById(item.getAcceptedNgoId())
+            var acceptedNgo = ngos.findById(
+                item.getAcceptedNgoId()
+            );
+
+            acceptedNgoName = acceptedNgo
                 .map(Ngo::getName)
                 .orElse("NGO account unavailable");
+
+            acceptedNgoPhone = acceptedNgo
+                .map(Ngo::getPhone)
+                .orElse(null);
+
+            acceptedNgoEmail = acceptedNgo
+                .map(Ngo::getEmail)
+                .orElse(null);
+
+            acceptedNgoContactPerson = acceptedNgo
+                .map(Ngo::getContactPerson)
+                .orElse(null);
         }
 
         return new DonationView(
@@ -243,7 +263,10 @@ public class DonationController {
                 item.getStatus(),
                 item.getCreatedAt(),
                 item.getUpdatedAt(),
-                acceptedNgoName
+                acceptedNgoName,
+                acceptedNgoPhone,
+                acceptedNgoEmail,
+                acceptedNgoContactPerson
         );
     }
 }
