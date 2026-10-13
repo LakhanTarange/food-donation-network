@@ -1092,11 +1092,7 @@
             byId("dashboardSearch").value = "";
             byId("dashboardFilter").value = "";
             await loadDonations();
-            if (isNgo) {
-                await openNgoDashboard();
-            } else {
-                showPage("dashboard");
-            }
+            showPage("dashboard");
         } catch (error) {
             feedback("donationFeedback", error.message || "Could not save this donation.");
         }
