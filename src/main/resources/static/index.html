@@ -845,6 +845,7 @@
     let donations = [];
     let publicDonations = [];
     let currentDonor = null;
+    let loginSubmitting = false;
     let editingId = null;
 
     const byId = id => document.getElementById(id);
@@ -941,6 +942,11 @@
     async function logoutUser() {
         try {
             await apiRequest("/api/auth/logout", {method:"POST"});
+
+            feedback("loginFeedback", "");
+            byId("loginEmail").value = "";
+            byId("loginPassword").value = "";
+
             currentDonor = null;
             currentNgo = null;
             currentAdmin = null;
@@ -981,6 +987,7 @@
 
         if (pageId === "login") {
             feedback("loginFeedback", "");
+            byId("loginPassword").value = "";
         }
 
         if (["dashboard", "history", "donate"].includes(pageId) && !currentDonor) {
@@ -1439,10 +1446,23 @@
 
     async function loginUser(event) {
         event.preventDefault();
+
+        if (loginSubmitting) return;
+
+        loginSubmitting = true;
+
+        const submitButton = event.currentTarget.querySelector(
+            'button[type="submit"]'
+        );
+
+        if (submitButton) {
+            submitButton.disabled = true;
+        }
+
         const password = byId("loginPassword").value;
 
         try {
-            feedback("loginFeedback", "Signing in…");
+            feedback("loginFeedback", "");
 
             const csrfResponse = await fetch("/api/auth/csrf", {
                 credentials:"same-origin"
@@ -1503,6 +1523,11 @@
                 error.message || "Could not connect to the server.");
         } finally {
             byId("loginPassword").value = "";
+            loginSubmitting = false;
+
+            if (submitButton) {
+                submitButton.disabled = false;
+            }
         }
     }
 
