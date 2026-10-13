@@ -979,6 +979,10 @@
         const target = byId(pageId);
         if (!target || !target.classList.contains("page")) return;
 
+        if (pageId === "login") {
+            feedback("loginFeedback", "");
+        }
+
         if (["dashboard", "history", "donate"].includes(pageId) && !currentDonor) {
             showPage("login");
             feedback("loginFeedback", "Please log in to open your donor account.");
@@ -1481,6 +1485,7 @@
             }
 
             event.target.reset();
+            feedback("loginFeedback", "");
             updateAuthUI();
             await loadDonations();
 
