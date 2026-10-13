@@ -39,3 +39,8 @@ build/
 /data/
 /target/
 .idea/
+
+# Local environment secrets
+.env
+.env.*
+!.env.example
