@@ -21,8 +21,17 @@ public class NgoNotificationController {
         this.notifications = notifications;
     }
 
+    public record NgoNotificationView(
+        Long id,
+        Long donationId,
+        String eventType,
+        String title,
+        String message,
+        String createdAt
+    ) {}
+
     @GetMapping("/mine")
-    public List<NgoNotification> mine(Principal principal) {
+    public List<NgoNotificationView> mine(Principal principal) {
 
         if (principal == null) {
             throw new ResponseStatusException(
@@ -39,8 +48,18 @@ public class NgoNotificationController {
                 "Admin verification required");
         }
 
-        return notifications.findByNgoIdOrderByIdDesc(
-            ngo.getId()
-        );
+        return notifications
+            .findByNgoIdOrderByIdDesc(ngo.getId())
+            .stream()
+            .map(n -> new NgoNotificationView(
+                n.getId(),
+                n.getDonationId(),
+                n.getEventType(),
+                n.getTitle(),
+                "A food donation update is available. " +
+                "Open your NGO Dashboard to view details.",
+                n.getCreatedAt()
+            ))
+            .toList();
     }
 }

@@ -24,7 +24,6 @@ public class NgoNotificationService {
                 "New food available: " + donation.getFood() +
                 ". Quantity: " + donation.getQuantity() +
                 " " + donation.getUnit() +
-                ". Location: " + donation.getLocation() +
                 ". Pickup deadline: " + donation.getDeadline();
 
             notifications.save(new NgoNotification(

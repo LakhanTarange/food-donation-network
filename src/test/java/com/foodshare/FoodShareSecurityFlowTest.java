@@ -275,4 +275,70 @@ class FoodShareSecurityFlowTest {
             )
             .andExpect(status().isConflict());
     }
+
+    @Test
+    void ngoSeesDonorDetailsOnlyAfterAcceptance()
+            throws Exception {
+
+        createDonor();
+        createNgo(ngoEmail, "TEST-NGO-PRIVACY", true);
+
+        long donationId = publishDonation();
+
+        // Available food must hide private information.
+        mvc.perform(
+                get("/api/ngo/donations/available")
+                    .with(user(ngoEmail).roles("NGO"))
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].location")
+                .doesNotExist())
+            .andExpect(jsonPath("$[0].donorPhone")
+                .doesNotExist())
+            .andExpect(jsonPath("$[0].donorName")
+                .doesNotExist());
+
+        // Notification response must not expose
+        // the pickup address or phone.
+        MvcResult alerts = mvc.perform(
+                get("/api/ngo/notifications/mine")
+                    .with(user(ngoEmail).roles("NGO"))
+            )
+            .andExpect(status().isOk())
+            .andReturn();
+
+        String alertsJson =
+            alerts.getResponse().getContentAsString();
+
+        org.junit.jupiter.api.Assertions.assertFalse(
+            alertsJson.contains("Private Test Pickup Address")
+        );
+
+        org.junit.jupiter.api.Assertions.assertFalse(
+            alertsJson.contains("9876543210")
+        );
+
+        // Verified NGO accepts donation.
+        mvc.perform(
+                post("/api/ngo/donations/{id}/accept", donationId)
+                    .with(user(ngoEmail).roles("NGO"))
+                    .with(csrf())
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status")
+                .value("ACCEPTED"));
+
+        // Contact and address are now available
+        // to the accepting NGO.
+        mvc.perform(
+                get("/api/ngo/donations/mine")
+                    .with(user(ngoEmail).roles("NGO"))
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].location")
+                .value("Private Test Pickup Address"))
+            .andExpect(jsonPath("$[0].donorPhone")
+                .value("9876543210"));
+    }
+
 }

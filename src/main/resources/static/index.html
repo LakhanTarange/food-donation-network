@@ -1609,7 +1609,8 @@
         const details = document.createElement("p");
         details.textContent =
             "Quantity: " + item.quantity + " " + item.unit +
-            " | Location: " + item.location +
+            " | Location: " +
+            (accepted ? item.location : "Shared after acceptance") +
             " | Deadline: " + item.deadline;
 
         const status = document.createElement("p");

@@ -61,13 +61,16 @@ public class NotificationService {
         );
 
         String ngoMessage =
-            "Dear NGO Team,\\n\\n" +
-            "A new food donation is available.\\n\\n" +
-            details +
-            "\\nDonor Name: " + donation.getName() +
-            "\\nDonor Phone: " + donation.getPhone() +
-            "\\n\\nPlease contact the donor to " +
-            "coordinate pickup after checking food safety.\\n\\n" +
+            "Dear NGO Team,\n\n" +
+            "A new food donation is available.\n\n" +
+            "Donation ID: " + donation.getId() +
+            "\nFood: " + donation.getFood() +
+            "\nQuantity: " + donation.getQuantity() +
+            " " + donation.getUnit() +
+            "\nPickup Deadline: " + donation.getDeadline() +
+            "\n\nLog in to the NGO Dashboard to review the donation." +
+            "\nDonor contact and pickup address are available " +
+            "only after acceptance.\n\n" +
             "Team FoodShareConnect";
 
         if (ngoEmails == null || ngoEmails.isBlank()) {

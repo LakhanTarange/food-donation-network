@@ -89,7 +89,6 @@ public class NgoDonationController {
                 "food", d.getFood(),
                 "quantity", d.getQuantity(),
                 "unit", d.getUnit(),
-                "location", d.getLocation(),
                 "deadline", d.getDeadline(),
                 "status", d.getStatus()
             ))
