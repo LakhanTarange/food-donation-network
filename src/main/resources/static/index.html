@@ -494,15 +494,15 @@
     <section id="chat" class="page">
         <div class="container chat">
             <div class="chat-header">
-                <h2>Donor &amp; Receiver Chat</h2>
-                <p>Discuss food availability and pickup.</p>
+                <h2>FoodShareConnect Auto Help Chat</h2>
+                <p>Ask questions about donations, NGOs and pickup.</p>
             </div>
             <div class="chat-note">Chat preview only. Messages are not sent to
                 another user and disappear when you refresh.</div>
             <div id="chatMessages" class="chat-messages" role="log"
                  aria-live="polite" aria-label="Chat messages">
                 <div class="message"><small>FoodShareConnect</small>
-                    Welcome! Try the message preview below.
+                    Hello! I am your automatic Help Bot. How can I help you?
                 </div>
             </div>
             <form class="chat-form" onsubmit="sendMessage(event)">
@@ -1532,23 +1532,159 @@
         }
     }
 
-    function sendMessage(event) {
-        event.preventDefault();
-        const messageText = value("chatInput");
-        if (!messageText) return;
 
+    function getChatBotReply(question) {
+        const text = question.toLowerCase().trim();
+        const has = (...words) =>
+            words.some(word => text.includes(word));
+
+        const greeting = text.replace(/[!?.,]/g, "").trim();
+
+        if (["hi", "hii", "hello", "hey", "namaste",
+             "namaskar", "नमस्कार"].includes(greeting)) {
+            return "Hello! Welcome to FoodShareConnect. " +
+                "I can help you with food donations, donor login, " +
+                "NGO registration, admin approval and pickup tracking.";
+        }
+
+        if (has("real person", "real user", "direct chat",
+                "message ngo", "chat with ngo")) {
+            return "This is an automated Help Chat. " +
+                "Direct donor-to-NGO messaging is not available yet. " +
+                "After a verified NGO accepts a donation, " +
+                "the relevant pickup contact details become available.";
+        }
+
+        if (has("admin", "approval", "approve",
+                "verification", "verify", "pending")) {
+            return "NGO verification is managed by the Admin. " +
+                "The Admin logs in, opens the Admin Dashboard, " +
+                "reviews the registered NGO and approves it. " +
+                "Only verified NGOs can accept donations.";
+        }
+
+        if (has("login", "log in", "sign in",
+                "password", "लॉगिन")) {
+            return "Open the Login page and enter your registered " +
+                "email or Admin ID and password. " +
+                "If login fails, check that the Spring Boot server " +
+                "is running and that your account exists in the " +
+                "current database. Never share your password in chat.";
+        }
+
+        if (has("register", "registration", "signup",
+                "sign up")) {
+            if (has("ngo")) {
+                return "Open NGO Registration, enter your " +
+                    "organisation details and create an account. " +
+                    "Wait for Admin verification before accepting food.";
+            }
+            return "Open Donor Registration, fill in your " +
+                "name, email, phone, donor type and address. " +
+                "Create an account and then log in.";
+        }
+
+        if (has("ngo", "receiver")) {
+            return "NGOs can register and log in. After Admin " +
+                "verification, they can view available food, " +
+                "accept a donation and mark its pickup complete.";
+        }
+
+        if (has("pickup", "collect", "accept", "collection")) {
+            return "A verified NGO can accept an available food " +
+                "donation. The donation status then changes to " +
+                "ACCEPTED. After actual collection, the assigned " +
+                "NGO can mark it COLLECTED.";
+        }
+
+        if (has("expire", "expiry", "deadline", "expired")) {
+            return "Every donation has a pickup deadline. " +
+                "An unaccepted listing can expire after its " +
+                "deadline. Donate only food suitable for safe " +
+                "handling and timely collection.";
+        }
+
+        if (has("allergen", "safety", "storage",
+                "preparation", "safe food")) {
+            return "The donor should provide accurate preparation " +
+                "time, storage conditions, known allergens and " +
+                "pickup deadline. The receiving NGO must " +
+                "independently check food safety before distribution.";
+        }
+
+        if (has("notification", "alert", "bell")) {
+            return "Log in and check your notification section. " +
+                "Donation updates can appear in the Donor Dashboard " +
+                "and NGO notification section.";
+        }
+
+        if (has("history", "status", "track", "tracking")) {
+            return "Log in as a Donor and open your Dashboard " +
+                "or Donation History. You can check whether " +
+                "a donation is AVAILABLE, ACCEPTED, COLLECTED, " +
+                "EXPIRED or CANCELLED.";
+        }
+
+        if (has("cancel", "delete donation")) {
+            return "Donors can manage their own eligible donations " +
+                "from the Dashboard. Cancellation depends on " +
+                "the current donation status.";
+        }
+
+        if (has("donate", "donation", "food", "भोजन", "दान")) {
+            return "To donate food: Register or log in as a Donor, " +
+                "open Share Food, enter the food name, quantity, " +
+                "pickup location, deadline and safety details, " +
+                "then publish the donation.";
+        }
+
+        if (has("thank", "thanks")) {
+            return "You are welcome! Thank you for supporting " +
+                "FoodShareConnect.";
+        }
+
+        return "Thank you for your message! I am the " +
+            "FoodShareConnect automatic Help Bot. " +
+            "Please ask about food donation, NGO registration, " +
+            "Admin verification, login, pickup or donation status.";
+    }
+
+    function addChatMessage(sender, messageText, sent) {
         const message = document.createElement("div");
-        message.className = "message sent";
+        message.className = sent ? "message sent" : "message";
+
         message.append(
-            textElement("small", currentDonor ? currentDonor.name : "You · Preview"),
+            textElement("small", sender),
             textElement("div", messageText)
         );
 
         const messages = byId("chatMessages");
         messages.append(message);
-        byId("chatInput").value = "";
         messages.scrollTop = messages.scrollHeight;
+    }
+
+    function sendMessage(event) {
+        event.preventDefault();
+
+        const messageText = value("chatInput");
+        if (!messageText) return;
+
+        addChatMessage(
+            currentDonor ? currentDonor.name : "You",
+            messageText,
+            true
+        );
+
+        byId("chatInput").value = "";
         byId("chatInput").focus();
+
+        window.setTimeout(() => {
+            addChatMessage(
+                "FoodShareConnect Auto Help Bot",
+                getChatBotReply(messageText),
+                false
+            );
+        }, 500);
     }
 
     function contactUs(event) {
